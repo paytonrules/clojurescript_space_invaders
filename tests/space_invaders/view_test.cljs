@@ -11,10 +11,10 @@
 
 (deftest test-two-invaders-in-same-row
   (is (= [{:x view/padding :y view/top}
-          {:x (+ view/padding view/invader-width) :y 30}]
+          {:x (+ (* view/padding 2) view/invader-width) :y 30}]
          (view/invaders-to-position [[:triangle :triangle]] 0))))
 
 (deftest test-an-invader-on-the-second-row
   (is (= [{:x view/padding :y view/top}
-          {:x view/padding :y (+ view/top view/invader-height)}]
+          {:x view/padding :y (+ (* view/top 2) view/invader-height)}]
          (view/invaders-to-position [[:triangle] [:triangle]] 0))))

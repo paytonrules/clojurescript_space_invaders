@@ -8,6 +8,7 @@
    :ticks 0
    :invaders [
               [:triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle]
+              [:waver :waver]
               ]
    })
 
@@ -18,8 +19,6 @@
         w (.-clientWidth canvas)
         h (.-clientHeight canvas)]
     (.clearRect ctx 0 0 w h)
-    (.fillRect ctx 200 30 view/invader-width view/invader-height)
-    (.fillRect ctx 200 70 view/invader-width view/invader-height)
     (doseq [invader-position (view/invaders-to-position (:invaders state) (:ticks state))]
       (.fillRect ctx
                  (:x invader-position)

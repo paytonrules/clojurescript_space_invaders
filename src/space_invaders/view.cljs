@@ -8,8 +8,8 @@
 (defn- row-to-position [row-num row]
   (map-indexed
     (fn [idx invader]
-      {:x (+ (* invader-width idx) padding)
-       :y (+ top (* invader-height row-num))})
+      {:x (+ (* invader-width idx) (* (inc idx) padding))
+       :y (+ (* (inc row-num) top) (* invader-height row-num))})
     row))
 
 (defn invaders-to-position [invaders ticks]
