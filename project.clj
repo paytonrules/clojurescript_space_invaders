@@ -1,5 +1,6 @@
 (defproject space-invaders "0.1.0-SNAPSHOT"
-	:dependencies [[org.clojure/clojure "1.8.0"]
+	:dependencies [[lein-doo "0.1.7"]
+                 [org.clojure/clojure "1.8.0"]
 								 [org.clojure/clojurescript "1.9.227"]
                  [reagent "0.6.0-rc"]]
 	:plugins [[lein-cljsbuild "1.1.4" :exclusions [[org.clojure/clojure]]]
@@ -10,7 +11,7 @@
     :builds [{:id "dev"
               :source-paths ["src"]
               :figwheel true
-              :compiler {:main "space-invaders.core"
+              :compiler {:main space_invaders.core
                          :asset-path "cljs/out"
                          :output-to "resources/public/cljs/main.js"
                          :output-dir "resources/public/cljs/out"
@@ -18,10 +19,19 @@
               },
              {:id "test"
               :source-paths ["src" "tests"]
+              :compiler {:main runners.doo_test
+                         :optimizations :none
+                         :output-to "resources/public/cljs/tests/all-tests.js"}},
+             {:id "figwheel-test"
+              :source-paths ["src" "tests"]
               :figwheel true
-              :compiler {:main space_invaders.test
-                         :output-to "resources/tests/all-tests.js"
-                         :optimizations :none}}]
+              :compiler {:main runners.browser_test
+                         :optimizations :none
+                         :asset-path "cljs/tests/out"
+                         :output-dir "resources/public/cljs/tests/out"
+                         :output-to "resources/public/cljs/tests/all-tests.js"
+							           :source-map true}}
+             ]
     :test-commands {"test" ["phantomjs"
                             "resources/tests/test.js"
                             "resources/tests/test.html"]}}

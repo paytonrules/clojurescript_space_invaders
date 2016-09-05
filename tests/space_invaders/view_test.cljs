@@ -1,4 +1,4 @@
-(ns space-invaders.core-test
+(ns space-invaders.view-test
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
             [space-invaders.view :as view]))
 
