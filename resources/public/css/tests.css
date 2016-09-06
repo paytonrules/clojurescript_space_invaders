@@ -1,0 +1,20 @@
+div {
+  padding: 10px;
+}
+
+p {
+  padding: 0px;
+  margin: 0;
+}
+
+p span {
+  font-weight: bold;
+}
+
+.failure {
+  background: pink;
+}
+
+.success {
+  background: lime;
+}
