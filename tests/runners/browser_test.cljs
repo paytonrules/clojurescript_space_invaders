@@ -43,14 +43,26 @@
 
 (defn successful-test? [test-result]
   (= 0 (+
-        (total-for-test test-result :failure)
-        (total-for-test test-result :error))))
+        (total-for-test test-result :failures)
+        (total-for-test test-result :errors))))
+
+(defn errored-test? [test-result]
+  (not (= 0 (total-for-test test-result :errors))))
 
 (defn failed-test? [test-result]
-  (not (successful-test? test-result)))
+  (not (= 0 (total-for-test test-result :failures))))
+
+(defn total-failing-tests []
+  (count (filter failed-test? (vals @total-results))))
+
+(defn total-errored-tests []
+  (count (filter errored-test? (vals @total-results))))
+
+(defn total-successful-tests []
+  (count (filter successful-test? (vals @total-results))))
 
 (defn success? []
-  (= 0 (+ (total :failures) (total :errors))))
+  (= 0 (+ (total-failing-tests) (total-errored-tests))))
 
 ; EVENTS
 (defn- update-new-result [result-code m]
@@ -80,11 +92,11 @@
 ; VIEW
 (defn result-block []
   [:div {:id "summary" :class (if (success?) "success" "failure")}
-   [:p (str (total :successes)
+   [:p (str (total-successful-tests)
             " ran successfully, "
-            (total :failures)
+            (total-failing-tests)
             " failed, and "
-            (total :errors)
+            (total-errored-tests)
             " errored")]])
 
 (defn test-details [context-results result-code]
