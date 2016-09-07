@@ -3,63 +3,126 @@
             [reagent.core :as r]
             [runners.tests]))
 
-; This is taken straight out of cljs.test source to get a list of the test names.
-; As such it's pretty unstable.
-; I don't really know why there would ever be more than one test name
-(defn- current-test-names []
-  (reverse (map #(:name (meta %))
-                (:testing-vars (cljs.test/get-current-env)))))
+; MODEL - sure why not?
+; Result stucture is:
+; Hash of
+; :"test-name" {
+;               :file
+;               :line
+;               :contexts {
+;                 "context" {
+;                   :successes '({:expected :actual :message})
+;                   :failures '({:expected :actual :message})
+;                 }
+;              }
+;
+; Don't defonce this - you want to reset on each reload
+(def total-results (r/atom {}))
 
-(def results
-  (r/atom {:failures '()
-           :successes '()}))
+(defn update-results [results]
+  (reset! total-results results))
+
+(defn add-result [results result {:keys [name file line context expected actual message]}]
+  (as-> (get-in results [name :contexts context result] '()) _
+        (conj _ {:expected expected :actual actual :message message})
+        (assoc-in results [name :contexts context result] _)
+        (assoc-in _ [name :file] file)
+        (assoc-in _ [name :line] line)))
+
+(defn total-for-test [test-results result-code]
+  (->> (:contexts test-results)
+       (vals)
+       (map result-code)
+       (map count)
+       (reduce +)))
+
+(defn total [result-code]
+  (->> (vals @total-results)
+       (map #(total-for-test % result-code))
+       (reduce +)))
+
+(defn successful-test? [test-result]
+  (= 0 (+
+        (total-for-test test-result :failure)
+        (total-for-test test-result :error))))
+
+(defn failed-test? [test-result]
+  (not (successful-test? test-result)))
 
 (defn success? []
-  (= 0 (count (:failures @results))))
+  (= 0 (+ (total :failures) (total :errors))))
 
+; EVENTS
+(defn- update-new-result [result-code m]
+  "This takes care of handling the report of errror messages, assuming one fail for every 'm'. The variable name 'm' is chosen because it matches what cljs.test uses internally.
+
+  m contains the :expected, :actual and error messagse if present
+  The file and line number come from the (:testing-vars (cljs.test/get-current-env))  - note the mapping of metadata below. Finally the context comes from (:testing-contexts of (cljs.test/get-current-env).
+
+  Interestingly the :testing-vars report a list of tests, but I haven't found a way this will happen. Just the same if more than one tests are reported in the testing-vars, then the failure will appear twice with different names."
+  (->> (:testing-vars (cljs.test/get-current-env))
+       (map #(select-keys (meta %) [:name :file :line]))
+       (map #(merge % (select-keys m [:expected :actual :message])))
+       (map #(assoc % :context (clojure.string/join ", " (:testing-contexts (cljs.test/get-current-env)))))
+       (reduce (fn [results result] (add-result results result-code result)) @total-results)
+
+       (update-results)))
+
+(defmethod cljs.test/report [:cljs.test/default :fail] [m]
+  (update-new-result :failures m))
+
+(defmethod cljs.test/report [:cljs.test/default :pass] [m]
+  (update-new-result :successes m))
+
+(defmethod cljs.test/report [:cljs.test/default :error] [m]
+  (update-new-result :errors m))
+
+; VIEW
 (defn result-block []
   [:div {:id "summary" :class (if (success?) "success" "failure")}
-    [:p (str (count (:successes @results))
-             " ran successfully, "
-             (count (:failures @results))
-             " failed.")]])
+   [:p (str (total :successes)
+            " ran successfully, "
+            (total :failures)
+            " failed, and "
+            (total :errors)
+            " errored")]])
+
+(defn test-details [context-results result-code]
+  [:div
+   (for [result (result-code context-results)]
+     ^{:key result}
+     [:div
+       [:p
+        [:span "Expected: "] (str (:expected result))]
+       [:p
+        [:span "Actual: "] (str (:actual result))]
+       (when-not (empty? (:message result))
+         [:p
+          [:span "Message: "] (str (:message result))])])])
 
 (defn result-view []
   [:div
-   (for [failure (:failures @results)]
-     ^{:key (:test-names failure)}
-     [:div {:class "failure"}
-      [:p
-       [:span "Test(s): "] (clojure.string/join "," (:test-names failure))]
-      [:p
-       [:span "Expected: "] (str (:expected failure))]
-      [:p
-       [:span "Actual: "] (str (:actual failure))]
-      [:p
-       [:span "Filename: " ] (:file failure)]])
-   (for [success (:successes @results)]
-     ^{:key (:test-names success)}
-     [:div {:class "success"}
-      [:p
-       [:span "Test(s): "] (clojure.string/join "," (:test-names success))]])
-   [result-block]])
+   [result-block]
+   (for [[test-name test-results] @total-results]
+     ^{:key test-name}
+     [:div {:class (if (failed-test? test-results) "failure" "success")}
+       [:p
+         [:span "Test: "] test-name]
+       [:p
+         [:span "File: "] (:file test-results)]
+       [:p
+         [:span "Line No: "] (:line test-results)]
+       (for [[context-name context-results] (:contexts test-results)]
+         ^{:key context-name}
+         [:div
+           [:p
+             [:span "Context: "] context-name]
+             [test-details context-results :failures]
+             [test-details context-results :errors]
+          ])])])
 
 (r/render [result-view]
           (js/document.getElementById "results"))
-
-(defn- add-result [k m]
-  (let [message-with-test-name (assoc m :test-names (current-test-names))]
-    (as-> (k @results) _
-      (conj _ message-with-test-name)
-      (assoc @results k _)
-      (reset! results _))))
-
-(defmethod cljs.test/report [:cljs.test/default :fail] [m]
-  (js/console.log m)
-  (add-result :failures m))
-
-(defmethod cljs.test/report [:cljs.test/default :pass] [m]
-  (add-result :successes m))
 
 ; Probably only needs to exist once
 (enable-console-print!)
