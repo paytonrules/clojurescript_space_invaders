@@ -7,8 +7,11 @@
   {
    :ticks 0
    :invaders [
-              [:triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle :triangle]
-              [:waver :waver]
+              (take 11 (repeat :small))
+              (take 11 (repeat :medium))
+              (take 11 (repeat :medium))
+              (take 11 (repeat :large))
+              (take 11 (repeat :large))
               ]
    })
 
