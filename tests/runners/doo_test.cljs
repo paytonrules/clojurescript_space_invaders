@@ -2,4 +2,4 @@
   (:require [doo.runner :refer-macros [doo-all-tests]]
             [runners.tests]))
 
-(doo-all-tests #"space-invaders\..*-test")
+(doo-all-tests #"(space-invaders|util)\..*-test")

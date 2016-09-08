@@ -99,7 +99,8 @@
   (update-new-result :successes m))
 
 (defmethod cljs.test/report [:cljs.test/default :error] [m]
-  (update-new-result :errors m))
+  (update-new-result :errors m)
+  (throw (:actual m)))
 
 ; VIEW
 (defn result-block []
@@ -151,4 +152,4 @@
 ; Probably only needs to exist once
 (enable-console-print!)
 
-(cljs.test/run-all-tests #"space-invaders\..*-test")
+(cljs.test/run-all-tests #"(util|space-invaders)\..*-test")
