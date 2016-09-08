@@ -1,9 +1,9 @@
 (ns space-invaders.view)
 
-(def padding 20)
+(def padding 10)
 (def top 30)
 (def invader-width 8)
-(def invader-height 30)
+(def invader-height 8)
 
 (defn invaders-to-position [invaders ticks]
   (-> (map-indexed

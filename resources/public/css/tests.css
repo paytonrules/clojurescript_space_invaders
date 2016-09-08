@@ -1,20 +1,57 @@
 div {
-  padding: 10px;
+  margin: 5px 0 0 5px;
 }
 
 p {
-  padding: 0px;
-  margin: 0;
-}
-
-p span {
-  font-weight: bold;
+  margin: 3px 0 0 0;
 }
 
 .failure {
   background: pink;
 }
 
-.success {
-  background: lime;
+.summary {
+  color: #FFFFFF;
+  margin-bottom: 16pt;
+  padding: 2px 0 2px 10px;
 }
+
+.summary p {
+  font-weight: 1.1rem;
+}
+
+.summary.success {
+  background: #A5B678;
+}
+
+.summary.failure {
+  background: #CA3717;
+}
+
+.test-name {
+  font-weight: bold;
+}
+
+.test.failure p.test-name {
+  color: #CA3717;
+}
+
+.test.success p.test-name {
+  color: #A5B678;
+}
+
+.test.failure p.context {
+  color: #CA3717;
+}
+
+.test.success p.context {
+  color: #A5B678;
+}
+
+
+.failure-location {
+  margin-top: 0px;
+  color: #CA3717;
+}
+
+
