@@ -103,7 +103,7 @@
 
 ; VIEW
 (defn result-block []
-  [:div {:id "summary" :class (if (success?) "success" "failure")}
+  [:div {:class (str "summary " (if (success?) "success" "failure"))}
    [:p (str (total-successful-tests)
             " ran successfully, "
             (total-failing-tests)
@@ -133,22 +133,17 @@
    [result-block]
    (for [[test-name test-results] @total-results]
      ^{:key test-name}
-     [:div {:class (if (failed-test? test-results) "failure" "success")}
-       [:p
-         [:span "Test: "] test-name]
+     [:div {:class (str "test " (if (failed-test? test-results) "failure" "success"))}
+       [:p {:class "test-name"} test-name]
        (when (failed-test? test-results)
-         [:p
-           [:span "File: "] (:file test-results)]
-         [:p
-           [:span "Line No: "] (:line test-results)]
-         (for [[context-name context-results] (:contexts test-results)]
-           ^{:key context-name}
-           [:div
-             [:p
-               [:span "Context: "] context-name]
-               [test-details context-results :failures]
-               [test-details context-results :errors]
-            ]))])])
+         [:p {:class "failure-location"} (str (:file test-results) ":" (:line test-results))])
+       (for [[context-name context-results] (:contexts test-results)]
+         ^{:key context-name}
+         [:div
+          (when-not (empty? context-name)
+             [:p {:class "context"} (str "\"" context-name "\"")])
+          [test-details context-results :failures]
+          [test-details context-results :errors]])])])
 
 (r/render [result-view]
           (js/document.getElementById "results"))

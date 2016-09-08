@@ -6,11 +6,13 @@
   (is (= [] (view/invaders-to-position [[]] 0))))
 
 (deftest test-invaders-to-position-one-invader-no-tics
-  (is (= [{:x view/padding :y view/top}]
-         (view/invaders-to-position [[:triangle]] 0))))
+  (testing "my fancy test runner"
+    (testing "is nested"
+      (is (= [{:x view/padding :y view/top}]
+             (view/invaders-to-position [[:triangle]] 0))))))
 
 (deftest test-two-invaders-in-same-row
-  (is (= [{:x view/padding :y view/top}
+  (is (= [{:x 1 :y view/top}
           {:x (+ (* view/padding 2) view/invader-width) :y 30}]
          (view/invaders-to-position [[:triangle :triangle]] 0))))
 
