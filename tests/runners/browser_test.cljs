@@ -42,27 +42,39 @@
        (reduce +)))
 
 (defn successful-test? [test-result]
-  (= 0 (+
-        (total-for-test test-result :failures)
-        (total-for-test test-result :errors))))
+  (= 0 (total-for-test test-result :failures)
+       (total-for-test test-result :errors)))
 
 (defn errored-test? [test-result]
   (not (= 0 (total-for-test test-result :errors))))
 
 (defn failed-test? [test-result]
-  (not (= 0 (total-for-test test-result :failures))))
+  (not (= 0
+          (total-for-test test-result :failures)
+          (total-for-test test-result :errors))))
 
 (defn total-failing-tests []
   (count (filter failed-test? (vals @total-results))))
 
-(defn total-errored-tests []
-  (count (filter errored-test? (vals @total-results))))
-
 (defn total-successful-tests []
   (count (filter successful-test? (vals @total-results))))
 
+(defn total-of-result-code [result-code]
+  (->> (vals @total-results)
+       (map #(total-for-test % result-code))
+       (reduce +)))
+
+(defn total-successful-assertions []
+  (total-of-result-code :successes))
+
+(defn total-failing-assertions []
+  (total-of-result-code :failures))
+
+(defn total-errors []
+  (total-of-result-code :errors))
+
 (defn success? []
-  (= 0 (+ (total-failing-tests) (total-errored-tests))))
+  (= 0 (total-failing-tests)))
 
 ; EVENTS
 (defn- update-new-result [result-code m]
@@ -95,9 +107,13 @@
    [:p (str (total-successful-tests)
             " ran successfully, "
             (total-failing-tests)
-            " failed, and "
-            (total-errored-tests)
-            " errored")]])
+            " failed.")]
+   [:p (str (total-successful-assertions)
+            " assertions passed, "
+            (total-failing-assertions)
+            " assertions failed, and there were "
+            (total-errors)
+            " errors")]])
 
 (defn test-details [context-results result-code]
   [:div
@@ -120,18 +136,19 @@
      [:div {:class (if (failed-test? test-results) "failure" "success")}
        [:p
          [:span "Test: "] test-name]
-       [:p
-         [:span "File: "] (:file test-results)]
-       [:p
-         [:span "Line No: "] (:line test-results)]
-       (for [[context-name context-results] (:contexts test-results)]
-         ^{:key context-name}
-         [:div
-           [:p
-             [:span "Context: "] context-name]
-             [test-details context-results :failures]
-             [test-details context-results :errors]
-          ])])])
+       (when (failed-test? test-results)
+         [:p
+           [:span "File: "] (:file test-results)]
+         [:p
+           [:span "Line No: "] (:line test-results)]
+         (for [[context-name context-results] (:contexts test-results)]
+           ^{:key context-name}
+           [:div
+             [:p
+               [:span "Context: "] context-name]
+               [test-details context-results :failures]
+               [test-details context-results :errors]
+            ]))])])
 
 (r/render [result-view]
           (js/document.getElementById "results"))
