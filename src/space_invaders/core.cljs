@@ -1,19 +1,9 @@
 (ns space-invaders.core
-  (:require [space-invaders.view :as view]))
+  (:require [space-invaders.game :as game]
+            [space-invaders.view :as view]
+            [util.game-loop :as game-loop]))
 
 (enable-console-print!)
-
-(defonce initial-app-state
-  {
-   :ticks 0
-   :invaders [
-              (take 11 (repeat :small))
-              (take 11 (repeat :medium))
-              (take 11 (repeat :medium))
-              (take 11 (repeat :large))
-              (take 11 (repeat :large))
-              ]
-   })
 
 (defonce canvas (.getElementById js/document "game"))
 
@@ -32,11 +22,11 @@
                   (:x invader-position)
                   (:y invader-position)))))
 
-(defn draw-game-state [app-state ticks]
-  (draw-canvas-contents app-state ticks)
-  (js/requestAnimationFrame (partial draw-game-state app-state (inc ticks))))
-
 (set! (.-backgroundColor (.-style canvas)) "black")
 (set! (.-width canvas) 224)
 (set! (.-height canvas) 256)
-(draw-game-state initial-app-state 0)
+
+(game-loop/start {:draw draw-canvas-contents
+                  :update game/update-game
+                  :state game/initial-app-state})
+

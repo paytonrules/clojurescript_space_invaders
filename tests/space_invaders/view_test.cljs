@@ -1,5 +1,5 @@
 (ns space-invaders.view-test
-  (:require [cljs.test :refer-macros [deftest is testing run-tests]]
+  (:require [cljs.test :refer-macros [deftest is testing]]
             [space-invaders.view :as view]))
 
 (deftest test-invaders-to-position
