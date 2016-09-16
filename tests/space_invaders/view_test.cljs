@@ -20,3 +20,9 @@
       (is (= [{:x view/padding :y view/top}
               {:x view/padding :y (+ (* view/top 2) view/invader-height)}]
              (view/invaders-to-position [[:triangle] [:triangle]] 0))))))
+
+(deftest invader-image
+  (testing "convert to open image"
+    (is (= "images/small_open.png" (view/image-path :small :open)))
+    (is (= "images/small_closed.png" (view/image-path :small :closed)))
+    (is (= "images/medium_open.png" (view/image-path :medium :open)))))

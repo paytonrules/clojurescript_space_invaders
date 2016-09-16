@@ -15,3 +15,6 @@
             row))
         invaders)
       (flatten)))
+
+(defn image-path [alien state]
+  (str "images/" (name alien) "_" (name state) ".png"))

@@ -1,6 +1,7 @@
 (ns ^:figwheel-always runners.browser-test
   (:require [cljs.test :refer-macros [run-all-tests]]
             [reagent.core :as r]
+;            [browser-test-runner.core]
             [runners.tests]))
 
 ; MODEL - sure why not?
