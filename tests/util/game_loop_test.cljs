@@ -1,5 +1,6 @@
 (ns util.game-loop-test
-  (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
+  (:require [cljs.test :refer-macros [is testing use-fixtures]]
+            [devcards.core :refer-macros [deftest]]
             [util.game-loop :as game-loop]))
 
 (def requested-frames (atom '()))

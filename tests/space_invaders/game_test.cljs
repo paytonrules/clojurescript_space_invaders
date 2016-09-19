@@ -1,5 +1,6 @@
-(ns space-invaders.game-test
-  (:require [cljs.test :refer-macros [deftest is testing]]
+(ns ^:figwheel-always space-invaders.game-test
+  (:require [cljs.test :refer-macros [is testing]]
+            [devcards.core :refer-macros [deftest]]
             [space-invaders.game :as game]))
 
 (deftest test-update-game
