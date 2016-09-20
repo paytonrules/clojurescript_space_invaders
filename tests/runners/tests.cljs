@@ -3,3 +3,8 @@
             [space-invaders.view-test]
             [util.game-loop-test]
             [util.image-loader-test]))
+
+(def tests [space-invaders.game-test
+            space-invaders.view-test
+            util.game-loop-test
+            util.image-loader-test])
