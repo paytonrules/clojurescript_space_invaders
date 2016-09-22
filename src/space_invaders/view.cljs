@@ -1,7 +1,7 @@
 (ns space-invaders.view)
 
 (def padding 3)
-(def top 30)
+(def top 20)
 (def invader-width 8)
 (def invader-height 8)
 
