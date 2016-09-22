@@ -8,7 +8,7 @@
             [lein-doo "0.1.7"]
             [lein-figwheel "0.5.6"]]
 	:clean-targets ^{:protect false} [:target-path "out" "resources/public/cljs"]
-  :source-paths ["src" "tests"]
+  :source-paths ["src" "tests"] ; Reminder - anything in cljc/clj needs to be in this list
 	:cljsbuild {
     :builds [{:id "dev"
               :source-paths ["src"]
@@ -17,17 +17,17 @@
                          :asset-path "cljs/out"
                          :output-to "resources/public/cljs/main.js"
                          :output-dir "resources/public/cljs/out"
-                         :source-map true}
+                         :source-map-timestamp true}
               },
              {:id "test"
               :source-paths ["src" "tests"]
-              :compiler {:main runners.doo_test
+              :compiler {:main runners.doo
                          :optimizations :none
                          :output-to "resources/public/cljs/tests/all-tests.js"}},
              {:id "figwheel-test"
               :source-paths ["src" "tests"]
               :figwheel {:devcards true}
-              :compiler {:main runners.browser_test
+              :compiler {:main runners.browser
                          :optimizations :none
                          :asset-path "cljs/tests/out"
                          :output-dir "resources/public/cljs/tests/out"

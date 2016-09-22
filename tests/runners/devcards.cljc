@@ -1,4 +1,4 @@
-(ns runners.whatever-test
+(ns runners.devcards
   (:require [cljs.analyzer.api :as ana-api]
             [devcards.core :as dc :refer-macros [deftest]]))
 

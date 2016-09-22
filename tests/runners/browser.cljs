@@ -1,6 +1,6 @@
-(ns runners.browser-test
+(ns runners.browser
   (:require [runners.tests])
-  (:require-macros [runners.whatever-test :as wt :refer [dev-cards-runner]]))
+  (:require-macros [runners.devcards :refer [dev-cards-runner]]))
 
 (enable-console-print!)
 (dev-cards-runner #"(util|space-invaders)\..*-test")
