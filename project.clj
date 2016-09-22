@@ -9,6 +9,7 @@
             [lein-doo "0.1.7"]
             [lein-figwheel "0.5.6"]]
 	:clean-targets ^{:protect false} [:target-path "out" "resources/public/cljs"]
+  :source-paths ["src" "tests"]
 	:cljsbuild {
     :builds [{:id "dev"
               :source-paths ["src"]
