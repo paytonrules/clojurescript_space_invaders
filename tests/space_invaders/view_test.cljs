@@ -14,7 +14,7 @@
 
     (testing "two invaders in the same row"
       (is (= [{:x view/padding :y view/top}
-              {:x (+ (* view/padding 2) view/invader-width) :y 30}]
+              {:x (+ (* view/padding 2) view/invader-width) :y 20}]
              (view/invaders-to-position [[:triangle :triangle]] 0))))
 
     (testing "an invader on the second row"
