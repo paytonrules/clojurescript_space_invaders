@@ -4,7 +4,13 @@ More of an experiment than anything. Port of Space Invaders in ClojureScript.
 
 ## App
 
-No server yet, just figwheel. Run lein figwheel and browse to localhost:3449
+Run with figwheel. For dev and testing run:
+
+```
+rlwrap lein figwheel devcards-test dev
+```
+
+No server yet, just figwheel. Run lein figwheel and browse to localhost:3449/index.html. The in-browser tests are at localhost:3449/tests.html. Click `runners.browser` for all the tests.
 
 ## Tests
 

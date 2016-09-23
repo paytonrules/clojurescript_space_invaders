@@ -24,7 +24,7 @@
               :compiler {:main runners.doo
                          :optimizations :none
                          :output-to "resources/public/cljs/tests/all-tests.js"}},
-             {:id "figwheel-test"
+             {:id "devcards-test"
               :source-paths ["src" "tests"]
               :figwheel {:devcards true}
               :compiler {:main runners.browser
