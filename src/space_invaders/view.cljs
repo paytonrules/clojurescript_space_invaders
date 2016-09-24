@@ -1,4 +1,5 @@
-(ns space-invaders.view)
+(ns space-invaders.view
+  (:require [clojure.string :as string]))
 
 (def padding 3)
 (def top 20)
@@ -16,5 +17,16 @@
         invaders)
       (flatten)))
 
-(defn image-path [alien state]
-  (str "images/" (name alien) "_" (name state) ".png"))
+(defn image-path->invader-state [image-path]
+  (map keyword (-> (string/split image-path "/")
+                   (last)
+                   (string/replace ".png" "")
+                   (string/split "_"))))
+
+(defn invader->image-path [invader state]
+  (str "images/" (name invader) "_" (name state) ".png"))
+
+(defn draw-enemies [draw-fn state]
+  )
+
+

@@ -16,6 +16,7 @@
         h (.-clientHeight canvas)]
     (.clearRect ctx 0 0 w h)
     (set! (.-fillStyle ctx) "#FFFFFF")
+    (view/draw-enemies (partial .drawImage ctx) state)
     (doseq [invader-position (view/invaders-to-position (:invaders state) (:ticks state))]
       (.drawImage ctx
                   image

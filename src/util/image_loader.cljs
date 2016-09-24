@@ -11,9 +11,7 @@
    (let [c (a/chan)
          image (create-image)]
      (set! (.-src image) src)
-     (set! (.-onload image)
-       (fn []
-         (go (a/>! c image))))
+     (set! (.-onload image) #(go (a/>! c image)))
      c)))
 
 (defn load-images
