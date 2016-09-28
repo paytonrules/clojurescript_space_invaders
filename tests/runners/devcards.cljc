@@ -4,9 +4,12 @@
 
 (defn list-of-tests [test-namespace]
   (->> (ana-api/ns-publics (symbol test-namespace))
-       (map second)
-       (filter :test)
-       (map (comp list :name))))
+       (remove (comp :test second))
+       (remove (comp :anonymous second))
+       (mapcat (fn [[short-name details]]
+                 (cons
+                   (str "**" short-name "**")
+                   (list (list (:name details))))))))
 
 (defn tests-matching-regex [test-regex]
   (->> (map str (ana-api/all-ns))
@@ -19,5 +22,4 @@
 
 (defmacro dev-cards-runner [test-regex]
   `(dc/deftest ~'all-test
-     ~"# All Tests"
      ~@(tests-matching-regex test-regex)))

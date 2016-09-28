@@ -1,9 +1,9 @@
 (ns ^:figwheel-always space-invaders.view-test
-  (:require [cljs.test :refer-macros [is testing]]
-            [devcards.core :refer-macros [deftest]]
-            [space-invaders.view :as view]))
+  (:require [space-invaders.view :as view])
+  (:require-macros [cljs.test :refer [is testing]]
+                   [runners.devcards :refer [dev-cards-runner]]))
 
-(deftest test-invaders-to-position
+(defn test-invaders-to-position []
   (testing "without any tics"
     (testing "no invaders"
       (is (= [] (view/invaders-to-position [[]] 0))))
@@ -22,13 +22,13 @@
               {:x view/padding :y (+ (* view/top 2) view/invader-height)}]
              (view/invaders-to-position [[:triangle] [:triangle]] 0))))))
 
-(deftest invader->image-path
+(defn invader->image-path []
   (testing "convert to open image"
     (is (= "images/small_open.png" (view/invader->image-path :small :open)))
     (is (= "images/small_closed.png" (view/invader->image-path :small :closed)))
     (is (= "images/medium_open.png" (view/invader->image-path :medium :open)))))
 
-(deftest image-path->invader-state
+(defn image-path->invader-state []
   (testing "convert to invader state"
     (is (= [:small :open]
            (view/image-path->invader-state "images/small_open.png")))
@@ -37,7 +37,4 @@
     (is (= [:medium :closed]
            (view/image-path->invader-state "images/medium_closed.png")))))
 
-(deftest make-image-lookup
-  (testing "draw no enemies"
-    (let [draw-fn #()
-          state {:enemies []}])))
+(dev-cards-runner #"space-invaders.view-test")

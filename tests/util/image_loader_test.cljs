@@ -2,64 +2,64 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :as a]
             [cljs.test :refer-macros [is testing async]]
-            [devcards.core :refer-macros [deftest]]
+            [runners.devcards :refer-macros [dev-cards-runner]]
             [util.image-loader :as image-loader]))
 
-(defn create-known-images [images]
+(defn- create-known-images [images]
   (let [image (last @images)]
     (swap! images pop)
     image))
 
-(defn setup-created-images [image-list]
+(defn- setup-created-images [image-list]
   (partial create-known-images (atom image-list)))
 
-(deftest load-image
+(defn load-image []
   (testing "created image is returned on a channel"
     (let [fake-image (js-obj)
           create-image (setup-created-images [fake-image])]
       (async done
         (let [chan (image-loader/load-image "source" create-image)]
-          (go
-            (when-let [image (a/<! chan)]
-              (is (re-find #"source$" (.-src image))))
-              (done))
+          (a/take! chan (fn [image]
+                          (is (re-find #"source$" (.-src image)))
+                          (done)))
 
           (.onload fake-image))))))
 
-(deftest load-images
+(defn load-images-no-images []
   (testing "completes with no images"
     (async done
       (let [chan (image-loader/load-images '())]
-        (go
-          (when-let [images (a/<! chan)]
-            (is (= [] images) "no images should be loaded")
-            (done))))))
+        (a/take! chan (fn [images]
+                        (is (= [] images) "no images should be loaded")
+                        (done)))))))
 
+(defn load-images-one-image []
   (testing "completes with one image"
     (async done
       (let [fake-image (js-obj)
             create-image (setup-created-images [fake-image])
             chan (image-loader/load-images '("first") create-image)]
-        (go
-          (when-let [images (a/<! chan)]
-            (is (= 1 (count images)))
-            (is (= "first" (.-src (first images))))
-            (done)))
+        (a/take! chan (fn [images]
+                        (is (= 1 (count images)))
+                        (is (= "first" (.-src (first images))))
+                        (done)))
 
-        (.onload fake-image))))
+        (.onload fake-image)))))
 
+(defn load-images-two-images []
   (testing "completes with many images"
     (let [fake-image-first (js-obj)
           fake-image-second (js-obj)
           create-image (setup-created-images [fake-image-second fake-image-first])]
       (async done
         (let [chan (image-loader/load-images '("first" "second") create-image)]
-          (go
-            (when-let [images (a/<! chan)]
-              (is (= 2 (count images)))
-              (is (= "first" (.-src (first images))))
-              (is (= "second" (.-src (second images))))
-              (done)))
+          (a/take! chan (fn [images]
+                          (is (= 2 (count images)))
+                          (is (= "first" (.-src (first images))))
+                          (is (= "second" (.-src (second images))))
+                          (done)))
 
           (.onload fake-image-first)
           (.onload fake-image-second))))))
+
+(dev-cards-runner #"util.image-loader-test")

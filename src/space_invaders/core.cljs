@@ -16,7 +16,7 @@
         h (.-clientHeight canvas)]
     (.clearRect ctx 0 0 w h)
     (set! (.-fillStyle ctx) "#FFFFFF")
-    (view/draw-enemies (partial .drawImage ctx) state)
+;    (view/draw-enemies (partial .drawImage ctx) state)
     (doseq [invader-position (view/invaders-to-position (:invaders state) (:ticks state))]
       (.drawImage ctx
                   image
@@ -27,7 +27,7 @@
 (set! (.-width canvas) 224)
 (set! (.-height canvas) 256)
 
-(game-loop/start {:draw draw-canvas-contents
-                  :update game/update-game
-                  :state game/initial-app-state})
+(game-loop/start! {:draw draw-canvas-contents
+                   :update game/update-game
+                   :initial-state game/initial-app-state})
 
