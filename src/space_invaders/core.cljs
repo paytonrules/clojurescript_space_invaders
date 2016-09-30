@@ -24,8 +24,8 @@
                   (:y invader-position)))))
 
 (set! (.-backgroundColor (.-style canvas)) "black")
-(set! (.-width canvas) 224)
-(set! (.-height canvas) 256)
+(set! (.-width canvas) 216)
+(set! (.-height canvas) 224)
 
 (game-loop/start! {:draw draw-canvas-contents
                    :update game/update-game
