@@ -1,167 +1,150 @@
 (ns ^:figwheel-always util.game-loop-test
   (:require [cljs.test :refer-macros [async is testing]]
             [runners.devcards :refer [dev-cards-runner]]
-            [util.game-loop :as game-loop]))
+            [util.game-loop :as gl]))
 
-(def ^{:private true} requested-frames (atom '()))
 (def ^{:private true} drawn-state (atom nil))
+(defn- clear-draw-spy []
+  (reset! drawn-state nil))
 
-(defn- draw [state]
+(defn- draw-spy [state]
   (reset! drawn-state state))
 
+(def ^{:private true} requested-frames (atom '()))
+(def ^{:private true} requested-frame-count (atom 0))
+
 (defn- request-next-frame [cb]
-  (swap! requested-frames conj cb))
+  (swap! requested-frames conj cb)
+  (swap! requested-frame-count inc))
 
-(defn- frames-requested []
-  (count @requested-frames))
-
-(defn- call-next-frame! []
+(defn- render-next-frame! []
   (let [frame (first @requested-frames)]
     (swap! requested-frames rest)
     (frame)))
 
-(defn- reset-requested-frames! []
-  (reset! requested-frames '()))
+(defn- reset-frames! []
+  (reset! requested-frames '())
+  (reset! requested-frame-count 0))
 
 (defn put-one-event []
-  (game-loop/clear-events!)
-  (async done
-    (game-loop/fire-event! {:event :exists})
-    (game-loop/take-event!
-      (fn [evt]
-        (is (= {:event :exists} evt))
-        (done)))))
+  (gl/clear-events!)
+  (gl/fire-event! {:event :exists})
+  (is (= {:event :exists} (gl/take-event!))))
 
 (defn put-two-events []
-  (game-loop/clear-events!)
-  (async done
-    (game-loop/fire-event! {:event :exists})
-    (game-loop/fire-event! {:also :exists})
-    (game-loop/take-event!
-      (fn [evt]
-        (is (= {:event :exists} evt))
-        (game-loop/take-event!
-          (fn [evt]
-            (is (= {:also :exists} evt))
-            (done)))))))
+  (gl/clear-events!)
+  (gl/fire-event! {:event :exists})
+  (gl/fire-event! {:also :exists})
 
-(defn game-loop-can-be-started-and-stopped []
-  (reset-requested-frames!)
+  (is (= {:event :exists} (gl/take-event!)))
+  (is (= {:also :exists} (gl/take-event!))))
 
-  (game-loop/start!
-    {:draw draw
-     :update (fn [state event] {:quit true})
-     :state {}} request-next-frame)
+(defn start-begins-the-loop  []
+  (reset-frames!)
+  (reset! gl/events ["not" "nil"])
+  (reset! gl/state {:something :wrong})
 
-  (is (= 1 (frames-requested)))
+  (testing "on start"
+    (gl/start! {:draw identity
+                :update identity}
+               request-next-frame)
 
-  (call-next-frame!)
+    (testing "all events are cleared"
+      (is (= [] @gl/events)))
 
-  (is (= 0 (frames-requested))))
+    (testing "the next frame is requested"
+      (is (= 1 @requested-frame-count)))
 
-(defn start-and-update []
-  (testing "starts with an initial game state"
-    (game-loop/start!
-      {:draw draw
-       :update (fn [state event] {:quit true})
-       :initial-state {:initial :state}}
-      request-next-frame)
+    (testing "the state is set to initial state"
+      (is (= (gl/->initial-game-state) @gl/state)))))
 
-    (is (= {:initial :state} @game-loop/state)))
+(defn draw-and-render-frame []
+  (reset-frames!)
+  (gl/start! {:draw draw-spy
+              :update #(assoc-in % [:state :update-count]
+                                 (inc (get-in % [:state :update-count] 0)))}
+             request-next-frame)
 
-  (testing "draws the initial state"
-    (game-loop/start!
-      {:draw draw
-       :update (fn [state event] {:quit true})
-       :initial-state {:initial :state}}
-      request-next-frame)
+  (testing "updates, draws the new state, and requests the next frame"
+    (render-next-frame!)
 
-    (is (= {:initial :state} @drawn-state)))
+    (is (= (gl/->initial-game-state {:update-count 1}) @drawn-state))
+    (is (= 2 @requested-frame-count)))
 
-  (testing "updates the state on the next frame, based on the previous state"
-    (let [old-state (atom nil)]
-      (reset-requested-frames!)
-      (game-loop/clear-events!)
+  (testing "updates a second time, keeping track of the state"
+    (render-next-frame!)
 
-      (game-loop/start!
-        {:draw draw
-         :update (fn [state event]
-                   (if (= state {:new :state})
-                     {:quit true}
-                     (do
-                       (reset! old-state state)
-                       {:new :state})))
-         :initial-state {:initial :state}}
-        request-next-frame)
+    (is (= (gl/->initial-game-state {:update-count 2}) @drawn-state))
+    (is (= 3 @requested-frame-count))))
 
-      (is (= {:initial :state} @game-loop/state))
+(defn ending-the-game-loop []
+  (reset-frames!)
+  (gl/start! {:draw draw-spy
+              :update #(assoc % :quit true)}
+             request-next-frame)
 
-      (call-next-frame!)
+  (testing "it does not request another frame when the quit flag is set"
+    (is (= 1 @requested-frame-count))
+    (render-next-frame!)
+    (is (= 1 @requested-frame-count))))
 
-      (is (= {:initial :state} @old-state))
-      (is (= {:new :state} @game-loop/state))))
+(defn- event-processing-update-func
+  ([state]
+   (->> (get-in state [:state :events] [])
+        (count)
+        (assoc-in state [:state :event-count])))
+  ([state event]
+   (as-> (get-in state [:state :events] []) _
+         (conj _ event)
+         (assoc-in state [:state :events] _))))
 
-  (testing "treats each update as a tick event"
-    (let [event (atom nil)]
-      (reset-requested-frames!)
+(defn event-processing []
+  (reset-frames!)
+  (gl/start! {:draw draw-spy
+              :update event-processing-update-func}
+             request-next-frame)
 
-      (game-loop/start!
-        {:draw draw
-         :update (fn [state e] (reset! event e) {:quit true})
-         :initial-state {:initial :state}}
-        request-next-frame)
-      (call-next-frame!)
+  (testing "events are processed in order, before the standard update"
+    (gl/fire-event! {:any :structure})
+    (gl/fire-event! {:is :fine})
 
-      (is (= :tick @event))))
+    (render-next-frame!)
 
-  (testing "draws the updated state"
-    (reset-requested-frames!)
+    (is (= (gl/->initial-game-state
+             {:events [{:any :structure} {:is :fine}]
+              :event-count 2})
+           @drawn-state)))
 
-    (let [last-update (atom nil)
-          update (fn [state event]
-                   (if (= state {:second :state})
-                     {:quit true}
-                     {:second :state}))]
+  (testing "events are cleared and will not re-fire on the next update"
+    (render-next-frame!)
 
-      (game-loop/start!
-        {:draw draw
-         :update update
-         :initial-state {:initial :state}}
-        request-next-frame)
-      (call-next-frame!)
+    (is (= (gl/->initial-game-state
+             {:events [{:any :structure} {:is :fine}]
+              :event-count 2})
+           @drawn-state))))
 
-      (is (= {:second :state} @drawn-state)))))
+(def ^{:private true} transition-call-count (atom 0))
+(defn- transition-func []
+  (swap! transition-call-count inc))
 
-(defn process-events []
-  (testing "an event updates state before the tick"
-    (game-loop/clear-events!)
-    (let [update (fn [state event]
-                   (if (= event :testing-event)
-                     :event-based-state
-                     (is (= :event-based-state state))))]
+(defn- transition-processing-update-func
+  ([state]
+    (as-> (:transitions state) _
+          (conj _ transition-func)
+          (assoc state :transitions _))))
 
-      (game-loop/fire-event! :testing-event)
-      (game-loop/start!
-        {:draw draw
-         :update update
-         :state {}}
-        request-next-frame)
-      (call-next-frame!)))
+(defn processing-transitions []
+  (reset-frames!)
+  (gl/start! {:draw draw-spy
+              :update transition-processing-update-func}
+             request-next-frame)
 
-  (testing "all events are processed before the tick"
-    (game-loop/clear-events!)
-    (let [update (fn [state event]
-                   (if (= event :testing-event-two)
-                     :event-based-state
-                     (when-not (= event :testing-event)
-                       (is (= :event-based-state state)))))]
+  (testing "A side-effect transtion is fired after it is returned by the update"
+    (render-next-frame!)
+    (is (= 1 @transition-call-count)))
 
-      (game-loop/fire-event! :testing-event)
-      (game-loop/fire-event! :testing-event-two)
-      (game-loop/start!
-        {:draw draw
-         :update update
-         :state {}}
-        request-next-frame)
-      (call-next-frame!))))
+  (testing "Transitions are reset on each fame"
+    (render-next-frame!)
+    (is (= 2 @transition-call-count))))
+
 (dev-cards-runner #"util.game-loop-test")
