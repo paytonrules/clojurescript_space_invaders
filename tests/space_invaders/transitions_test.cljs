@@ -28,12 +28,10 @@
           image-two (js-obj)
           expected-event {:name :images-loaded
                           :images [image-one image-two]}]
+
       (transitions/load-images! ["one" "two"] fake-image-loader)
+      (go (ca/>! images-done-chan [image-one image-two]))
 
-      (go
-        (ca/>! images-done-chan [image-one image-two])
-
-        (check-in-the-future
-          #(= expected-event (gl/take-event!)) done)))))
+      (check-in-the-future #(= expected-event (gl/take-event!)) done))))
 
 (dev-cards-runner #"space-invaders.transitions-test")
