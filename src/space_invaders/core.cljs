@@ -28,6 +28,5 @@
 (set! (.-height canvas) 224)
 
 (game-loop/start! {:draw draw-canvas-contents
-                   :update game/update-game
-                   :initial-state game/initial-app-state})
+                   :update game/update-game})
 
