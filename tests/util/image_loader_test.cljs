@@ -48,18 +48,18 @@
 
 (defn load-images-two-images []
   (testing "completes with many images"
-    (let [fake-image-first (js-obj)
-          fake-image-second (js-obj)
-          create-image (setup-created-images [fake-image-second fake-image-first])]
-      (async done
-        (let [chan (image-loader/load-images '("first" "second") create-image)]
-          (a/take! chan (fn [images]
-                          (is (= 2 (count images)))
-                          (is (= "first" (.-src (first images))))
-                          (is (= "second" (.-src (second images))))
-                          (done)))
+    (async done
+           (let [fake-image-first (js-obj)
+                 fake-image-second (js-obj)
+                 create-image (setup-created-images [fake-image-second fake-image-first])
+                 chan (image-loader/load-images '("first" "second") create-image)]
+             (.onload fake-image-first)
+             (.onload fake-image-second)
 
-          (.onload fake-image-first)
-          (.onload fake-image-second))))))
+             (a/take! chan (fn [images]
+                             (is (= 2 (count images)))
+                             (is (= "first" (.-src (first images))))
+                             (is (= "second" (.-src (second images))))
+                             (done)))))))
 
 (dev-cards-runner #"util.image-loader-test")

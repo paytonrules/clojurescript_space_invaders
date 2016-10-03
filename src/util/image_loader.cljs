@@ -15,7 +15,8 @@
      c)))
 
 (defn load-images
-  ([image-paths] (load-images image-paths create-empty-image))
+  ([image-paths]
+   (load-images image-paths create-empty-image))
   ([image-paths create-image]
    (let [complete (cljs.core.async/chan)
          loading-images (mapv #(load-image % create-image) image-paths)]
