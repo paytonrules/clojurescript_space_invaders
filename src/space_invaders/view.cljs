@@ -1,22 +1,25 @@
-(ns space-invaders.view)
+(ns space-invaders.view
+  (:require [space-invaders.presentation :as presentation]))
 
-(def padding 3)
-(def top 20)
-(def invader-width 8)
-(def invader-height 8)
+(defonce canvas (.getElementById js/document "game"))
+(defonce ctx (.getContext canvas "2d"))
+(defonce w (.-clientWidth canvas))
+(defonce h (.-clientHeight canvas))
 
-(defn invaders-to-position [invaders ticks]
-  (-> (map-indexed
-        (fn [row-num row]
-          (map-indexed
-            (fn [idx invader]
-              {:x (+ (* invader-width idx) (* (inc idx) padding))
-               :y (+ (* (inc row-num) top) (* invader-height row-num))})
-            row))
-        invaders)
-      (flatten)))
+(defn clear-screen []
+  (.clearRect ctx 0 0 w h)
+  (set! (.-fillStyle ctx) "#FFFFFF"))
 
+(defmulti draw-canvas-contents (fn [{:keys [state]}] (:name state)))
 
-(defn draw-enemies [draw-fn state])
+(defmethod draw-canvas-contents nil [state]
+  (clear-screen))
 
+(defmethod draw-canvas-contents :loading-images [state]
+  (clear-screen))
+
+(defmethod draw-canvas-contents :playing [state]
+  (clear-screen)
+  (doseq [{:keys [image x y]} (presentation/images-with-position state)]
+    (.drawImage ctx image x y)))
 

@@ -25,20 +25,18 @@
 
 ; Game State machine
 (def row-length 11)
-(def velocity 15)
+(def velocity 60)
 
 (def invader-types [:small :medium :large])
 (def invader-states [:open :closed])
 
-(def initial-app-state
-  {:state :starting
-   :ticks 0
+(defonce initial-app-state
+  {:ticks 0
    :invaders [(take row-length (repeat :small))
               (take row-length (repeat :medium))
               (take row-length (repeat :medium))
               (take row-length (repeat :large))
               (take row-length (repeat :large))]})
-
 
 (defmulti update-game
   (fn
@@ -47,6 +45,7 @@
 
 (defmethod update-game nil [state]
   (-> state
+      (assoc-in [:state] initial-app-state)
       (assoc-in [:state :name] :loading-images)
       (assoc :transitions [(partial transitions/load-images! (enemy-images))])))
 

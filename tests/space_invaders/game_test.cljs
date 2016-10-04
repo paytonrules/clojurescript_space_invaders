@@ -13,6 +13,9 @@
 (defn update-game []
   (testing "first game update"
     (let [new-state (game/update-game (game-loop/->initial-game-state))]
+      (testing "starts with initial-app state"
+        (is (= 0 (get-in new-state [:state :ticks])))
+        )
       (testing "begins loading images"
         (is (= :loading-images (get-in new-state [:state :name])))
         (is (= 1 (count (:transitions new-state)))))
@@ -40,8 +43,7 @@
         (let [image-lookup (-> (game/update-game original-state event)
                                (get-in [:state :images]))]
           (is (= image-one (get-in image-lookup [:small :open])))
-          (is (= image-two (get-in image-lookup [:medium :closed])))))
-      ))
+          (is (= image-two (get-in image-lookup [:medium :closed])))))))
 
   (testing "in :playing"
     (testing "increments ticks"
