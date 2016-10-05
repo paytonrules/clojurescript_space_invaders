@@ -22,21 +22,21 @@
       (testing "image in upper left corner"
         (let [image-with-position (first images)]
           (is (= small-image (:image image-with-position) ))
-          (is (= view/padding (:x image-with-position)))
-          (is (= view/top (:y image-with-position)))))
+          (is (= game/padding (:x image-with-position)))
+          (is (= game/top (:y image-with-position)))))
 
       (testing "image to its immediate right"
         (let [image-with-position (second images)]
           (is (= medium-image (:image image-with-position)))
-          (is (= (+ view/padding view/invader-width view/padding)
+          (is (= (+ game/padding game/invader-width game/padding)
                  (:x image-with-position)))
-          (is (= view/top (:y image-with-position)))))
+          (is (= game/top (:y image-with-position)))))
 
       (testing "image on the second row"
         (let [image-with-position (nth images 2)]
           (is (= large-image (:image image-with-position)))
-          (is (= view/padding (:x image-with-position)))
-          (is (= (+ view/top view/top view/invader-height)
+          (is (= game/padding (:x image-with-position)))
+          (is (= (+ game/top game/top game/invader-height)
                  (:y image-with-position))))))))
 
 (defn should-map-invaders-to-closed-state []

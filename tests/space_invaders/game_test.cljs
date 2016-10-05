@@ -40,10 +40,9 @@
                (get-in (game/update-game original-state event) [:state :name]))))
 
       (testing "loads all the images in a lookup table"
-        (let [image-lookup (-> (game/update-game original-state event)
-                               (get-in [:state :images]))]
-          (is (= image-one (get-in image-lookup [:small :open])))
-          (is (= image-two (get-in image-lookup [:medium :closed])))))))
+        (let [new-state (game/update-game original-state event)]
+          (is (= image-one (game/image-lookup new-state :small :open)))
+          (is (= image-two (game/image-lookup new-state :medium :closed)))))))
 
   (testing "in :playing"
     (testing "increments ticks"
@@ -69,7 +68,19 @@
 
 (defn test-toggle-back-and-forth []
   (testing "the invaders toggle between two states based on the velocity"
-    (is (= :open (game/invader-position {:ticks 0})))
-    (is (= :closed (game/invader-position {:ticks game/velocity})))))
+    (is (= :open (game/invader-position (game-loop/->initial-game-state {:ticks 0}))))
+    (is (= :closed (game/invader-position (game-loop/->initial-game-state
+                                                {:ticks game/velocity}))))))
+
+(defn should-calculate-position []
+  (testing "gets x from invader-width, column and padding"
+    (is (= game/padding (game/invader-x-position 0)))
+    (is (= (+ game/invader-width game/padding game/padding)
+           (game/invader-x-position 1))))
+
+  (testing "gets y from top, invader-height and row"
+    (is (= game/top (game/invader-y-position 0))))
+    (is (= (+ game/top game/top game/invader-height)
+           (game/invader-y-position 1))))
 
 (dev-cards-runner #"space-invaders.game-test")

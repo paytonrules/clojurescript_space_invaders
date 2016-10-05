@@ -7,10 +7,19 @@
 
 (declare invader-states)
 (declare invader-types)
+
+(def padding 3)
+(def top 20)
+(def invader-width 8)
+(def invader-height 8)
+
 ; These are helper functions. Not sure if they belong here, but I don't have a
 ; clean ns yet
 (defn invader->image-path [invader state]
   (str "images/" (name invader) "_" (name state) ".png"))
+
+(defn image-lookup [{:keys [state]} image variant]
+  (get-in state [:images image variant]))
 
 (defn enemy-images []
   (for [invader invader-types
@@ -67,7 +76,14 @@
        (assoc-in state [:state :ticks])))
 
 ; Queries - useable in the view
-(defn invader-position [{:keys [ticks]}]
-  (if (even? (quot ticks velocity))
+(defn invader-position [{:keys [state]}]
+  (if (even? (quot (:ticks state) velocity))
     :open
     :closed))
+
+(defn invader-x-position [column-number]
+  (+ (* invader-width column-number) (* (inc column-number) padding)))
+
+(defn invader-y-position [row-number]
+  (+ (* (inc row-number) top) (* invader-height row-number)))
+

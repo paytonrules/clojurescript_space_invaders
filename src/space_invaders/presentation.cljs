@@ -1,20 +1,17 @@
 (ns space-invaders.presentation
   (:require [space-invaders.game :as game]))
 
-(def padding 3)
-(def top 20)
-(def invader-width 8)
-(def invader-height 8)
+(defn- image-lookup [game-state invader]
+  (game/image-lookup game-state invader (game/invader-position game-state)))
 
-(defn images-with-position [{:keys [state]}]
+(defn images-with-position [{:keys [state] :as game-state}]
   (-> (map-indexed
         (fn [row-idx row]
           (map-indexed
             (fn [idx invader]
-              {:image (get-in state [:images invader
-                                     (game/invader-position state)])
-               :x (+ (* invader-width idx) (* (inc idx) padding))
-               :y  (+ (* (inc row-idx) top) (* invader-height row-idx))})
+              {:image (image-lookup game-state invader)
+               :x (game/invader-x-position idx)
+               :y (game/invader-y-position row-idx)})
             row))
         (:invaders state))
       (flatten)))
