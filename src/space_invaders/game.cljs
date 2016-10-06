@@ -3,7 +3,8 @@
             [clojure.string :as string]
             [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
-            [util.image-loader :as image-loader]))
+            [util.image-loader :as image-loader]
+            [util.time :as t]))
 
 (declare invader-states)
 (declare invader-types)
@@ -34,7 +35,7 @@
 
 ; Game State machine
 (def row-length 11)
-(def velocity 60)
+(def velocity 1000)
 
 (def invader-types [:small :medium :large])
 (def invader-states [:open :closed])
@@ -70,14 +71,33 @@
     (-> (assoc-in state [:state :name] :playing)
         (assoc-in [:state :images] image-lookup))))
 
+(defn update-last-timestamp [game-state epoch]
+  (assoc game-state :last-timestamp epoch))
+
+(defn update-last-move [state epoch]
+  (if-let [last-move (:since-last-move state)]
+    (assoc state :since-last-move
+           (+ last-move (- epoch (:last-timestamp state))))
+    (assoc state :since-last-move 0)))
+
+(defn update-ticks [game-state]
+  (if (>= (:since-last-move game-state) velocity)
+    (let [ticks (inc (:ticks game-state))]
+      (-> (assoc game-state :since-last-move 0)
+          (assoc :ticks ticks)))
+    game-state))
+
 (defmethod update-game :playing [state]
-  (->> (get-in state [:state :ticks] 0)
-       (inc)
-       (assoc-in state [:state :ticks])))
+  (let [epoch (t/epoch)
+        new-game (-> (:state state)
+                     (update-last-move epoch)
+                     (update-last-timestamp epoch)
+                     (update-ticks))]
+    (assoc state :state new-game)))
 
 ; Queries - useable in the view
 (defn invader-position [{:keys [state]}]
-  (if (even? (quot (:ticks state) velocity))
+  (if (even? (:ticks state))
     :open
     :closed))
 

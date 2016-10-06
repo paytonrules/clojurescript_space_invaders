@@ -43,7 +43,7 @@
   (testing "map invaders closed state"
     (let [small-image (js-obj)
           state (gl/->initial-game-state
-                  {:ticks game/velocity
+                  {:ticks 1
                    :invaders ['(:small)]
                    :images {:small {:closed small-image}}})
           images (view/images-with-position state)]

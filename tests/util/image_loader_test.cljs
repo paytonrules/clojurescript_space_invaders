@@ -19,11 +19,11 @@
           create-image (setup-created-images [fake-image])]
       (async done
         (let [chan (image-loader/load-image "source" create-image)]
+          (.onload fake-image)
+
           (a/take! chan (fn [image]
                           (is (re-find #"source$" (.-src image)))
-                          (done)))
-
-          (.onload fake-image))))))
+                          (done))))))))
 
 (defn load-images-no-images []
   (testing "completes with no images"
@@ -39,12 +39,12 @@
       (let [fake-image (js-obj)
             create-image (setup-created-images [fake-image])
             chan (image-loader/load-images '("first") create-image)]
+        (.onload fake-image)
+
         (a/take! chan (fn [images]
                         (is (= 1 (count images)))
                         (is (= "first" (.-src (first images))))
-                        (done)))
-
-        (.onload fake-image)))))
+                        (done)))))))
 
 (defn load-images-two-images []
   (testing "completes with many images"
