@@ -1,11 +1,8 @@
 (ns space-invaders.invaders)
 
-(def invader-width 8)
-(def top 20)
-
-(def start-position {:x 0 :y 0})
+(def start-position {:x 25 :y 65})
 (def velocity 5)
-(def padding 16)
+(def column-width 16)
 (def row-height 16)
 
 (defn pose [ticks]
@@ -19,7 +16,7 @@
 
 (defn x-position [{:keys [column ticks]}]
   (let [position (position ticks)]
-    (+ (:x position) (* padding column))))
+    (+ (:x position) (* column-width column))))
 
 (defn y-position [row]
   (+ (:y start-position) (* row-height row)))

@@ -28,7 +28,6 @@
                    (string/replace ".png" "")
                    (string/split "_"))))
 
-; Game State machine
 (def row-length 11)
 (def velocity 1000)
 
@@ -89,9 +88,3 @@
                      (update-last-timestamp epoch)
                      (update-ticks))]
     (assoc state :state new-game)))
-
-(def padding 1)
-(def top 20)
-(def invader-width 8)
-(def invader-height 8)
-

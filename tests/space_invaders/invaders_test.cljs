@@ -16,16 +16,16 @@
   (testing "moves to the right on the first tick"
     (is (= (+ invaders/velocity (:x invaders/start-position))
            (:x (invaders/position 1))))
-    (is (= 0 (:y (invaders/position 1)))))
+    (is (= (:y invaders/start-position) (:y (invaders/position 1)))))
 
   (testing "gets x from type, ticks and column"
     (is (= (+ (:x invaders/start-position))
            (invaders/x-position {:invader :small :column 0 :ticks 0}))))
 
   (testing "can put an invader in each column, handling padding"
-    (is (= (+ (:x invaders/start-position) invaders/padding))
+    (is (= (+ (:x invaders/start-position) invaders/column-width))
            (invaders/x-position {:column 1 :ticks 0}))
-    (is (= (+ (:x invaders/start-position) (* 2 invaders/padding)))
+    (is (= (+ (:x invaders/start-position) (* 2 invaders/column-width)))
            (invaders/x-position {:column 2 :ticks 0})))
 
   (testing "gets y from start-point and row-height, from the row"

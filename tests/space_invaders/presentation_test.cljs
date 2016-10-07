@@ -29,7 +29,7 @@
       (testing "image to its immediate right"
         (let [image-with-position (second images)]
           (is (= medium-image (:image image-with-position)))
-          (is (= (+ (:x invaders/start-position) invaders/padding)
+          (is (= (+ (:x invaders/start-position) invaders/column-width)
                  (:x image-with-position)))
           (is (= (:y invaders/start-position)
                  (:y image-with-position)))))
