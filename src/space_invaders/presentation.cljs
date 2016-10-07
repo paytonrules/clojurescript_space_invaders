@@ -11,8 +11,9 @@
           (map-indexed
             (fn [idx invader]
               {:image (image-lookup game-state invader)
-               :x (game/invader-x-position idx)
-               :y (game/invader-y-position row-idx)})
+               :x (invaders/x-position {:column idx
+                                        :ticks (:ticks state)})
+               :y (invaders/y-position row-idx)})
             row))
         (:invaders state))
       (flatten)))

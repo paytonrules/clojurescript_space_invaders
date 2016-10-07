@@ -106,15 +106,4 @@
     (is (= [:medium :closed]
            (game/image-path->invader-state "http://example.com/images/medium_closed.png")))))
 
-(defn should-calculate-position []
-  (testing "gets x from invader-width, column and padding"
-    (is (= game/padding (game/invader-x-position 0)))
-    (is (= (+ game/invader-width game/padding game/padding)
-           (game/invader-x-position 1))))
-
-  (testing "gets y from top, invader-height and row"
-    (is (= game/top (game/invader-y-position 0))))
-    (is (= (+ game/top game/top game/invader-height)
-           (game/invader-y-position 1))))
-
 (dev-cards-runner #"space-invaders.game-test")

@@ -1,12 +1,13 @@
 (ns ^:figwheel-always space-invaders.presentation-test
   (:require [util.game-loop :as gl]
             [space-invaders.game :as game]
+            [space-invaders.invaders :as invaders]
             [space-invaders.presentation :as view])
   (:require-macros [cljs.test :refer [is testing]]
                    [runners.devcards :refer [dev-cards-runner]]))
 
 (defn should-map-invaders-to-images-and-positions []
-  (testing "map invders on each row and column"
+  (testing "map invaders on each row and column"
     (let [small-image (js-obj)
           medium-image (js-obj)
           large-image (js-obj)
@@ -22,21 +23,22 @@
       (testing "image in upper left corner"
         (let [image-with-position (first images)]
           (is (= small-image (:image image-with-position) ))
-          (is (= game/padding (:x image-with-position)))
-          (is (= game/top (:y image-with-position)))))
+          (is (= (:x invaders/start-position) (:x image-with-position)))
+          (is (= (:y invaders/start-position) (:y image-with-position)))))
 
       (testing "image to its immediate right"
         (let [image-with-position (second images)]
           (is (= medium-image (:image image-with-position)))
-          (is (= (+ game/padding game/invader-width game/padding)
+          (is (= (+ (:x invaders/start-position) invaders/padding)
                  (:x image-with-position)))
-          (is (= game/top (:y image-with-position)))))
+          (is (= (:y invaders/start-position)
+                 (:y image-with-position)))))
 
       (testing "image on the second row"
         (let [image-with-position (nth images 2)]
           (is (= large-image (:image image-with-position)))
-          (is (= game/padding (:x image-with-position)))
-          (is (= (+ game/top game/top game/invader-height)
+          (is (= (:x invaders/start-position) (:x image-with-position)))
+          (is (= (+ (:y invaders/start-position) invaders/row-height)
                  (:y image-with-position))))))))
 
 (defn should-map-invaders-to-closed-state []

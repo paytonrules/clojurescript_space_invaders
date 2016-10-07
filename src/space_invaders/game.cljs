@@ -95,9 +95,3 @@
 (def invader-width 8)
 (def invader-height 8)
 
-(defn invader-x-position [column-number]
-  (+ (* invader-width column-number) (* (inc column-number) padding)))
-
-(defn invader-y-position [row-number]
-  (+ (* (inc row-number) top) (* invader-height row-number)))
-
