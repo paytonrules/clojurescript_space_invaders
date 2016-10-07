@@ -35,7 +35,25 @@
     (is (= (+ (:y invaders/start-position) (* 2 invaders/row-height))
            (invaders/y-position 2)))))
 
+(defn should-calculate-the-right-most-edge []
+  (let [start-in-x (:x invaders/start-position)]
+    (testing "with only one row remaining"
+      (testing "from one invader"
+        (is (= (+ start-in-x invaders/column-width)
+               (invaders/right-edge {:invaders [[:small]] :ticks 0}))))
 
+      (testing "from two invaders"
+        (is (= (+ start-in-x (* 2 invaders/column-width))
+               (invaders/right-edge {:invaders [[:small :small]] :ticks 0})))))
+
+    (testing "with multiple rows it uses the longest row"
+      (is (= (+ start-in-x (* 2 invaders/column-width))
+             (invaders/right-edge {:invaders [[:small]
+                                              [:small :small]] :ticks 0}))))
+
+    (testing "account for the x position because of ticks"
+      (is (= (+ start-in-x invaders/column-width invaders/velocity)
+             (invaders/right-edge {:invaders [[:small]] :ticks 1}))))))
 
 (dev-cards-runner #"space-invaders.invaders-test")
 

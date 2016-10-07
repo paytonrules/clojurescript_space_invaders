@@ -1,6 +1,6 @@
 (ns space-invaders.invaders)
 
-(def start-position {:x 25 :y 65})
+(def start-position {:x 25 :y 40})
 (def velocity 5)
 (def column-width 16)
 (def row-height 16)
@@ -21,3 +21,7 @@
 (defn y-position [row]
   (+ (:y start-position) (* row-height row)))
 
+(defn right-edge [{:keys [invaders ticks]}]
+  (let [longest-row-length (apply max (map count invaders))]
+    (+ (:x (position ticks))
+       (* longest-row-length column-width))))
