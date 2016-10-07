@@ -27,12 +27,15 @@ Phantomjs 2.0
 
 ## Todo
 
-- Fix stretchyness
-- Get the canvas bigger, with a proper resolution
-- HTML reloading.
-- Make sure vim talks to the repl by figwheel (nREPL)
+- Get position changing
+  - Start with an initial position
+  - Move it each tick, should it be called ticks?
+- Get the spacing right
+  - Probably a lookup table
+  - Invaders namespace
 - Game over on crash into ground
 - Travis CI cause why not?
+- Try out using Eclipse
 - Add gunner
 - Blockers
 

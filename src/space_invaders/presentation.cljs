@@ -1,8 +1,9 @@
 (ns space-invaders.presentation
-  (:require [space-invaders.game :as game]))
+  (:require [space-invaders.invaders :as invaders]
+            [space-invaders.game :as game]))
 
-(defn- image-lookup [game-state invader]
-  (game/image-lookup game-state invader (game/invader-position game-state)))
+(defn- image-lookup [{:keys [state] :as game-state} invader]
+  (game/image-lookup game-state invader (invaders/pose (:ticks state))))
 
 (defn images-with-position [{:keys [state] :as game-state}]
   (-> (map-indexed

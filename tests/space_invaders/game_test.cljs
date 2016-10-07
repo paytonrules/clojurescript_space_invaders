@@ -89,16 +89,7 @@
                                  :ticks 1
                                  :since-last-move game/velocity})
                 new-state (:state (game/update-game playing-state))]
-            (is (= 2 (:ticks new-state))))))
-
-      ; Make sure you increment ticks beyond 1
-      ; Why are we stretched?????
-
-
-      ))
-
-
-  )
+            (is (= 2 (:ticks new-state)))))))))
 
 (defn invader->image-path []
   (testing "convert to open image"
@@ -114,11 +105,6 @@
            (game/image-path->invader-state "http://example.com/images/small_closed.png")))
     (is (= [:medium :closed]
            (game/image-path->invader-state "http://example.com/images/medium_closed.png")))))
-
-(defn test-toggle-back-and-forth []
-  (testing "the invaders toggle between two states based on the number of tics"
-    (is (= :open (game/invader-position (game-loop/->initial-game-state {:ticks 0}))))
-    (is (= :closed (game/invader-position (game-loop/->initial-game-state {:ticks 1}))))))
 
 (defn should-calculate-position []
   (testing "gets x from invader-width, column and padding"

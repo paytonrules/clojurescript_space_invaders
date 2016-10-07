@@ -3,8 +3,12 @@
 
 (defonce canvas (.getElementById js/document "game"))
 (defonce ctx (.getContext canvas "2d"))
-(defonce w (.-clientWidth canvas))
-(defonce h (.-clientHeight canvas))
+(defonce w 648)
+(defonce h 672)
+(set! (.-width canvas) w)
+(set! (.-height canvas) h)
+(set! (.-imageSmoothingEnabled ctx) false)
+(.scale ctx 3 3)
 
 (defn clear-screen []
   (.clearRect ctx 0 0 w h)

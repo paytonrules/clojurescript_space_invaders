@@ -9,11 +9,6 @@
 (declare invader-states)
 (declare invader-types)
 
-(def padding 3)
-(def top 20)
-(def invader-width 8)
-(def invader-height 8)
-
 ; These are helper functions. Not sure if they belong here, but I don't have a
 ; clean ns yet
 (defn invader->image-path [invader state]
@@ -95,11 +90,10 @@
                      (update-ticks))]
     (assoc state :state new-game)))
 
-; Queries - useable in the view
-(defn invader-position [{:keys [state]}]
-  (if (even? (:ticks state))
-    :open
-    :closed))
+(def padding 1)
+(def top 20)
+(def invader-width 8)
+(def invader-height 8)
 
 (defn invader-x-position [column-number]
   (+ (* invader-width column-number) (* (inc column-number) padding)))
