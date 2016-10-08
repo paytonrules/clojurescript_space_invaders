@@ -1,4 +1,4 @@
-(ns space-invaders.invaders)
+(ns space-invaders.invasion)
 
 (def start-position {:x 15 :y 40})
 (def velocity 4)
