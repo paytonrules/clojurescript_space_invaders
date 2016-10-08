@@ -13,9 +13,13 @@
   (testing "starts at the upper-left corner from the ticks"
     (is (= invaders/start-position (invaders/position 0))))
 
-  (testing "moves to the right on the first tick"
+  (testing "moves left or right based on velocity"
     (is (= (+ invaders/velocity (:x invaders/start-position))
-           (:x (invaders/position 1))))
+           (:x (invaders/position {:ticks 1 :direction :right}))))
+    (is (= (- (:x invaders/start-position) invaders/velocity )
+           (:x (invaders/position {:ticks 1 :direction :left})))))
+
+  (testing "y's position is always based on row, for now"
     (is (= (:y invaders/start-position) (:y (invaders/position 1)))))
 
   (testing "gets x from type, ticks and column"
@@ -51,9 +55,9 @@
              (invaders/right-edge {:invaders [[:small]
                                               [:small :small]] :ticks 0}))))
 
-    (testing "account for the x position because of ticks"
+    (testing "account for the movement of the invaders"
       (is (= (+ start-in-x invaders/column-width invaders/velocity)
-             (invaders/right-edge {:invaders [[:small]] :ticks 1}))))))
+             (invaders/right-edge {:invaders [[:small]] :ticks 1 :direction :right}))))))
 
 (dev-cards-runner #"space-invaders.invaders-test")
 
