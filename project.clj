@@ -6,7 +6,7 @@
 								 [org.clojure/clojurescript "1.9.227"]]
 	:plugins [[lein-cljsbuild "1.1.4" :exclusions [[org.clojure/clojure]]]
             [lein-doo "0.1.7"]
-            [lein-figwheel "0.5.6"]]
+            [lein-figwheel "0.5.9"]]
 	:clean-targets ^{:protect false} [:target-path "out" "resources/public/cljs"]
   :source-paths ["src" "tests"] ; Reminder - anything in cljc/clj needs to be in this list
 	:cljsbuild {
