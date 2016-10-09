@@ -6,8 +6,8 @@
 
 (defn test-toggle-back-and-forth []
   (testing "the invaders toggle between two states based on the number of tics"
-    (is (= :open (invasion/pose {:ticks 0})))
-    (is (= :closed (invasion/pose {:ticks 1})))))
+    (is (= :open (invasion/pose {:pose :open})))
+    (is (= :closed (invasion/pose {:pose :closed})))))
 
 (defn should-calculate-positions []
   (testing "starts at the upper-left corner from the ticks"
@@ -105,12 +105,6 @@
                 new-state (-> (invasion/update original-state delta)
                               (invasion/update delta))]
             (is (= :closed (:pose new-state)))))
-
-
-
-        )
-      )
-    )
-  )
+        ))))
 
 (dev-cards-runner #"space-invaders.invasion-test")

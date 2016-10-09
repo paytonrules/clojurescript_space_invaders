@@ -3,7 +3,10 @@
             [space-invaders.game :as game]))
 
 (defn- image-lookup [{:keys [state] :as game-state} invader]
-  (game/image-lookup game-state invader (invasion/pose state)))
+  (game/image-lookup
+    game-state
+    invader
+    (invasion/pose (:invasion state))))
 
 (defn images-with-position [{:keys [state] :as game-state}]
   (-> (map-indexed
@@ -12,8 +15,8 @@
             (fn [idx invader]
               {:image (image-lookup game-state invader)
                :x (invasion/x-position {:column idx
-                                        :ticks (:ticks state)})
+                                        :ticks (:ticks (:invasion state))})
                :y (invasion/y-position row-idx)})
             row))
-        (:invaders state))
+        (:invaders (:invasion state)))
       (flatten)))

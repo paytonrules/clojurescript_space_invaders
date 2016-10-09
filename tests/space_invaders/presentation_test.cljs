@@ -12,9 +12,11 @@
           medium-image (js-obj)
           large-image (js-obj)
           state (gl/->initial-game-state
-                  {:ticks 0
-                   :invaders ['(:small :medium)
-                              '(:large)]
+                  {:invasion
+                   {:ticks 0
+                    :pose :open
+                    :invaders ['(:small :medium)
+                               '(:large)]}
                    :images {:small {:open small-image}
                             :medium {:open medium-image}
                             :large {:open large-image}}})
@@ -22,7 +24,7 @@
 
       (testing "image in upper left corner"
         (let [image-with-position (first images)]
-          (is (= small-image (:image image-with-position) ))
+          (is (= small-image (:image image-with-position)))
           (is (= (:x invasion/start-position) (:x image-with-position)))
           (is (= (:y invasion/start-position) (:y image-with-position)))))
 
@@ -45,8 +47,10 @@
   (testing "map invaders closed state"
     (let [small-image (js-obj)
           state (gl/->initial-game-state
-                  {:ticks 1
-                   :invaders ['(:small)]
+                  {:invasion
+                   {:ticks 1
+                    :pose :closed
+                    :invaders ['(:small)]}
                    :images {:small {:closed small-image}}})
           images (view/images-with-position state)]
 

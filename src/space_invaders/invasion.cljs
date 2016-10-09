@@ -8,6 +8,7 @@
 (def row-length 11)
 (def invader-states [:open :closed])
 (def invader-types [:small :medium :large])
+(def direction-multiplier {:left -1 :right 1})
 
 (defonce initial
   {:ticks 0 ; delete me
@@ -20,12 +21,7 @@
               (take row-length (repeat :large))
               (take row-length (repeat :large))]})
 
-(defn pose [{:keys [ticks]}]
-  (if (even? ticks)
-    :open
-    :closed))
-
-(def direction-multiplier {:left -1 :right 1})
+(defn pose [{:keys [pose]}] pose)
 
 (defn position [{:keys [ticks direction]}]
   (let [dm (get direction-multiplier direction)]
