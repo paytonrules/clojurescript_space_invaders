@@ -3,7 +3,7 @@
             [space-invaders.game :as game]))
 
 (defn- image-lookup [{:keys [state] :as game-state} invader]
-  (game/image-lookup game-state invader (invasion/pose (:ticks state))))
+  (game/image-lookup game-state invader (invasion/pose state)))
 
 (defn images-with-position [{:keys [state] :as game-state}]
   (-> (map-indexed

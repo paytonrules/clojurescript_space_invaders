@@ -1,16 +1,13 @@
 (ns space-invaders.game
   (:require [cljs.core.async :as ca]
             [clojure.string :as string]
+            [space-invaders.invasion :as invasion]
             [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
             [util.image-loader :as image-loader]
             [util.time :as t]))
 
-(declare invader-states)
-(declare invader-types)
-
-; These are helper functions. Not sure if they belong here, but I don't have a
-; clean ns yet
+; This all looks like it should be moved to invasion
 (defn invader->image-path [invader state]
   (str "images/" (name invader) "_" (name state) ".png"))
 
@@ -18,8 +15,8 @@
   (get-in state [:images image variant]))
 
 (defn enemy-images []
-  (for [invader invader-types
-        state invader-states]
+  (for [invader invasion/invader-types
+        state invasion/invader-states]
     (invader->image-path invader state)))
 
 (defn image-path->invader-state [image-path]
@@ -27,20 +24,12 @@
                    (last)
                    (string/replace ".png" "")
                    (string/split "_"))))
+; ^ This probably belongs in invasion
 
-(def row-length 11)
-(def velocity 1000)
+(def velocity 1000) ; velocity? Again
 
-(def invader-types [:small :medium :large])
-(def invader-states [:open :closed])
 
-(defonce initial-app-state
-  {:ticks 0
-   :invaders [(take row-length (repeat :small))
-              (take row-length (repeat :medium))
-              (take row-length (repeat :medium))
-              (take row-length (repeat :large))
-              (take row-length (repeat :large))]})
+(defonce initial-app-state {:invasion invasion/initial})
 
 (defmulti update-game
   (fn

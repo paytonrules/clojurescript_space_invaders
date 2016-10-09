@@ -1,11 +1,26 @@
-(ns space-invaders.invasion)
+(ns space-invaders.invasion
+  (:refer-clojure :exclude [update]))
 
 (def start-position {:x 15 :y 40})
 (def velocity 4)
 (def column-width 16)
 (def row-height 16)
+(def row-length 11)
+(def invader-states [:open :closed])
+(def invader-types [:small :medium :large])
 
-(defn pose [ticks]
+(defonce initial
+  {:ticks 0 ; delete me
+   :pose :open
+   :since-last-move 0
+   :time-to-move 1000
+   :invaders [(take row-length (repeat :small))
+              (take row-length (repeat :medium))
+              (take row-length (repeat :medium))
+              (take row-length (repeat :large))
+              (take row-length (repeat :large))]})
+
+(defn pose [{:keys [ticks]}]
   (if (even? ticks)
     :open
     :closed))
@@ -28,3 +43,19 @@
   (let [longest-row-length (apply max (map count invaders))]
     (+ (:x (position state))
        (* longest-row-length column-width))))
+
+(defn- toggle-pose [{:keys [pose] :as invasion}]
+  (if (= :closed pose)
+    (assoc invasion :pose :open)
+    (assoc invasion :pose :closed)))
+
+(defn- move [invasion]
+  (-> (toggle-pose invasion)
+      (assoc :since-last-move 0)))
+
+(defn update [invasion delta]
+  (let [since-last-move (-> (get invasion :since-last-move 0)
+                            (+ delta))]
+    (if (>= since-last-move (:time-to-move invasion))
+      (move invasion)
+      (assoc invasion :since-last-move since-last-move))))

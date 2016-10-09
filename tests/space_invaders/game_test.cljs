@@ -2,6 +2,7 @@
   (:require [cljs.test :refer-macros [is testing]]
             [runners.devcards :refer-macros [dev-cards-runner]]
             [space-invaders.game :as game]
+            [space-invaders.invasion :as invasion]
             [util.game-loop :as game-loop]
             [util.time :as t]))
 
@@ -19,8 +20,8 @@
         (is (= :loading-images (get-in new-state [:state :name])))
         (is (= 1 (count (:transitions new-state)))))
 
-      (testing (str "each row of invaders is " game/row-length " long")
-        (is (every? #(= game/row-length %)
+      (testing (str "each row of invaders is " invasion/row-length " long")
+        (is (every? #(= invasion/row-length %)
                     (map count (:invaders game/initial-app-state)))))))
 
   (testing "leave the state as is when loading images"
