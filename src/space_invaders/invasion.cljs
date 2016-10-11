@@ -1,7 +1,7 @@
 (ns space-invaders.invasion
   (:refer-clojure :exclude [update]))
 
-(def start-position {:x 15 :y 40})
+(def start-position {:x 1 :y 20})
 (def velocity 4)
 (def column-width 16)
 (def row-height 16)
@@ -11,10 +11,10 @@
 (def direction-multiplier {:left -1 :right 1})
 
 (defonce initial
-  {:ticks 0 ; delete me
-   :pose :open
+  {:pose :open
    :since-last-move 0
    :time-to-move 1000
+   :position start-position
    :invaders [(take row-length (repeat :small))
               (take row-length (repeat :medium))
               (take row-length (repeat :medium))
@@ -23,30 +23,27 @@
 
 (defn pose [{:keys [pose]}] pose)
 
-(defn position [{:keys [ticks direction]}]
-  (let [dm (get direction-multiplier direction)]
-    {:x (+ (:x start-position) (* ticks velocity dm))
-     :y (:y start-position)}))
+(defn invader-position [{:keys [position]} {:keys [row col]}]
+  (let [{:keys [x y]} position]
+    {:x (+ x (* col column-width))
+     :y (+ y (* row row-height))}))
 
-(defn x-position [{:keys [column ticks] :as state}]
-  (let [position (position state)]
-    (+ (:x position) (* column-width column))))
-
-(defn y-position [row]
-  (+ (:y start-position) (* row-height row)))
-
-(defn right-edge [{:keys [invaders ticks] :as state}]
+(defn right-edge [{:keys [invaders position]}]
   (let [longest-row-length (apply max (map count invaders))]
-    (+ (:x (position state))
-       (* longest-row-length column-width))))
+    (+ (:x position) (* longest-row-length column-width))))
 
 (defn- toggle-pose [{:keys [pose] :as invasion}]
   (if (= :closed pose)
     (assoc invasion :pose :open)
     (assoc invasion :pose :closed)))
 
+(defn- next-position [{:keys [position direction]}]
+  {:x (* (direction-multiplier direction)  (+ (:x position) velocity))
+   :y (:y position)})
+
 (defn- move [invasion]
   (-> (toggle-pose invasion)
+      (assoc :position (next-position invasion))
       (assoc :since-last-move 0)))
 
 (defn update [invasion delta]

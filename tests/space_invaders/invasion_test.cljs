@@ -9,55 +9,41 @@
     (is (= :open (invasion/pose {:pose :open})))
     (is (= :closed (invasion/pose {:pose :closed})))))
 
-(defn should-calculate-positions []
-  (testing "starts at the upper-left corner from the ticks"
-    (is (= invasion/start-position (invasion/position 0))))
+(defn should-provide-invader-positions []
+  (let [invasion {:position {:x 10 :y 10}}]
+    (testing "starts at the invasion position for 0, 0"
+      (is (= {:x 10 :y 10} (invasion/invader-position
+                             invasion
+                             {:row 0 :col 0}))))
 
-  (testing "moves left or right based on velocity"
-    (is (= (+ invasion/velocity (:x invasion/start-position))
-           (:x (invasion/position {:ticks 1 :direction :right}))))
-    (is (= (- (:x invasion/start-position) invasion/velocity )
-           (:x (invasion/position {:ticks 1 :direction :left})))))
+    (testing "each column is column-width"
+      (is (= {:x (+ 10 invasion/column-width) :y 10}
+             (invasion/invader-position invasion {:row 0 :col 1})))
+      (is (= {:x (+ 10 (* 2 invasion/column-width)) :y 10}
+             (invasion/invader-position invasion {:row 0 :col 2}))))
 
-  (testing "y's position is always based on row, for now"
-    (is (= (:y invasion/start-position) (:y (invasion/position 1)))))
-
-  (testing "gets x from type, ticks and column"
-    (is (= (:x invasion/start-position)
-           (invasion/x-position {:invader :small :column 0 :ticks 0}))))
-
-  (testing "can put an invader in each column, handling padding"
-    (is (= (+ (:x invasion/start-position) invasion/column-width))
-           (invasion/x-position {:column 1 :ticks 0}))
-    (is (= (+ (:x invasion/start-position) (* 2 invasion/column-width)))
-           (invasion/x-position {:column 2 :ticks 0})))
-
-  (testing "gets y from start-point and row-height, from the row"
-    (is (= (:y invasion/start-position) (invasion/y-position 0)))
-    (is (= (+ (:y invasion/start-position) invasion/row-height)
-           (invasion/y-position 1)))
-    (is (= (+ (:y invasion/start-position) (* 2 invasion/row-height))
-           (invasion/y-position 2)))))
+    (testing "each row is row-height"
+      (is (= {:x 10 :y (+ 10 invasion/row-height)}
+             (invasion/invader-position invasion {:row 1 :col 0}))))))
 
 (defn should-calculate-the-right-most-edge []
-  (let [start-in-x (:x invasion/start-position)]
-    (testing "with only one row remaining"
-      (testing "from one invader"
-        (is (= (+ start-in-x invasion/column-width)
-               (invasion/right-edge {:invaders [[:small]] :ticks 0}))))
+  (let [initial-invasion {:position {:x 2}}]
+    (testing "with only one row"
+      (testing "one invader"
+        (let [invasion (assoc initial-invasion :invaders [[:small]])]
+          (is (= (+ 2 invasion/column-width)
+                 (invasion/right-edge invasion)))))
 
-      (testing "from two invaders"
-        (is (= (+ start-in-x (* 2 invasion/column-width))
-               (invasion/right-edge {:invaders [[:small :small]] :ticks 0})))))
+      (testing "many invaders"
+        (let [invasion (assoc initial-invasion :invaders [[:small :small]])]
+          (is (= (+ 2 (* 2 invasion/column-width))
+                 (invasion/right-edge invasion))))))
 
     (testing "with multiple rows it uses the longest row"
-      (is (= (+ start-in-x (* 2 invasion/column-width))
-             (invasion/right-edge {:invaders [[:small]
-                                              [:small :small]] :ticks 0}))))
-
-    (testing "account for the movement of the invasion"
-      (is (= (+ start-in-x invasion/column-width invasion/velocity)
-             (invasion/right-edge {:invaders [[:small]] :ticks 1 :direction :right}))))))
+      (let [invasion (assoc initial-invasion :invaders [[:small]
+                                                        [:small :small]])]
+        (is (= (+ 2 (* 2 invasion/column-width))
+               (invasion/right-edge invasion)))))))
 
 (defn should-calcluate-the-next-state []
   (testing "accumulate time since last move based on delta"
@@ -75,9 +61,9 @@
     (testing "toggle pose every time-to-move"
       (let [time-to-move 1000
             original-state  (-> invasion/initial
-                                 (assoc :pose :open)
-                                 (assoc :since-last-move 999)
-                                 (assoc :time-to-move time-to-move))]
+                                (assoc :pose :open)
+                                (assoc :since-last-move 999)
+                                (assoc :time-to-move time-to-move))]
 
         (testing "when below time-to-move don't toggle pose"
           (let [delta 0
@@ -100,11 +86,43 @@
                 new-state (invasion/update closed-state delta)]
             (is (= :open (:pose new-state)))))
 
-        (testing "only toggle every 'time-to-move' by resetting"
+        (testing "only toggle every 'time-to-move'"
           (let [delta 1
                 new-state (-> (invasion/update original-state delta)
                               (invasion/update delta))]
-            (is (= :closed (:pose new-state)))))
-        ))))
+            (is (= :closed (:pose new-state)))))))
+
+    (testing "move on every update - based on time-to-move"
+      (let [time-to-move 1000
+            original-state (-> invasion/initial
+                               (assoc :since-last-move 999)
+                               (assoc :time-to-move time-to-move)
+                               (assoc :position {:x 0 :y 0})
+                               (assoc :direction :right))]
+
+        (testing "doesn't move before it is time"
+          (let [delta 0
+                new-state (invasion/update original-state delta)]
+            (is (= {:x 0 :y 0} (:position new-state)))))
+
+        (testing "moves the correct direction on time-to-move"
+          (let [delta 1
+                new-state (invasion/update original-state delta)]
+            (is (= {:x invasion/velocity :y 0} (:position new-state)))))
+
+        (testing "moves the correct direction crossing time-to-move"
+          (let [delta 2
+                new-state (invasion/update original-state delta)]
+            (is (= {:x invasion/velocity :y 0} (:position new-state)))))
+
+        (testing "moves respect the direction"
+          (let [delta 1
+                moving-left (assoc original-state :direction :left)
+                new-state (invasion/update moving-left delta)]
+            (is (= {:x (- invasion/velocity) :y 0} (:position new-state)))))
+
+
+        ))
+    ))
 
 (dev-cards-runner #"space-invaders.invasion-test")

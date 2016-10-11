@@ -8,15 +8,15 @@
     invader
     (invasion/pose (:invasion state))))
 
+(defn- image-for-row-col [invasion game-state row col invader]
+  (-> (invasion/invader-position invasion {:row row :col col})
+      (assoc :image (image-lookup game-state invader))))
+
+(defn- images-for-row [invasion game-state row invaders]
+  (map-indexed (partial image-for-row-col invasion game-state row) invaders))
+
 (defn images-with-position [{:keys [state] :as game-state}]
-  (-> (map-indexed
-        (fn [row-idx row]
-          (map-indexed
-            (fn [idx invader]
-              {:image (image-lookup game-state invader)
-               :x (invasion/x-position {:column idx
-                                        :ticks (:ticks (:invasion state))})
-               :y (invasion/y-position row-idx)})
-            row))
-        (:invaders (:invasion state)))
-      (flatten)))
+  (let [invasion (:invasion state)]
+    (->> (:invaders invasion)
+         (map-indexed (partial images-for-row invasion game-state))
+         (flatten))))
