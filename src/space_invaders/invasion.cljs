@@ -8,7 +8,8 @@
 (def row-length 11)
 (def invader-states [:open :closed])
 (def invader-types [:small :medium :large])
-(def direction-multiplier {:left -1 :right 1})
+(def left-right-multiplier {:left -1 :right 1 :down 0})
+(def up-down-multiplier {:left 0 :right 0 :down 1})
 
 (defonce initial
   {:pose :open
@@ -37,18 +38,31 @@
     (assoc invasion :pose :open)
     (assoc invasion :pose :closed)))
 
-(defn- next-position [{:keys [position direction]}]
-  {:x (* (direction-multiplier direction)  (+ (:x position) velocity))
-   :y (:y position)})
+(defn- update-position [{:keys [position direction] :as invasion} bounds]
+  (let [{:keys [x y]} position
+        new-x (+ x (* (left-right-multiplier direction) velocity))
+        new-y (+ y (* (up-down-multiplier direction) velocity))]
+    (assoc invasion :position {:x new-x :y new-y})))
 
-(defn- move [invasion]
+(defn- update-direction [{:keys [position direction] :as invasion} bounds]
+  (let [{:keys [x y]} position
+        new-direction (cond
+                        (and (>= x (:right bounds)) (= :right direction)) :down
+                        (and (>= x (:right bounds)) (= :down direction)) :left
+                        (and (<= x (:left bounds)) (= :left direction)) :down
+                        (and (<= x (:left bounds)) (= :down direction)) :right
+                        :default direction)]
+    (assoc invasion :direction new-direction)))
+
+(defn- move [invasion bounds]
   (-> (toggle-pose invasion)
-      (assoc :position (next-position invasion))
+      (update-direction bounds)
+      (update-position bounds)
       (assoc :since-last-move 0)))
 
-(defn update [invasion delta]
+(defn update [invasion {:keys [delta bounds]}]
   (let [since-last-move (-> (get invasion :since-last-move 0)
                             (+ delta))]
     (if (>= since-last-move (:time-to-move invasion))
-      (move invasion)
+      (move invasion bounds)
       (assoc invasion :since-last-move since-last-move))))

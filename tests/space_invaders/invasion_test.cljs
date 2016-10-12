@@ -48,15 +48,15 @@
 (defn should-calcluate-the-next-state []
   (testing "accumulate time since last move based on delta"
     (testing "on the first update store the delta"
-      (let [delta 5
-            new-state (invasion/update invasion/initial delta)]
-        (is (= delta (:since-last-move new-state)))))
+      (let [options {:delta 5 :bounds {:right 10000}}
+            new-state (invasion/update invasion/initial options)]
+        (is (= 5 (:since-last-move new-state)))))
 
     (testing "on subsequent updates accumulate delta"
-      (let [delta 5
-            new-state (-> (invasion/update invasion/initial delta)
-                          (invasion/update delta))]
-        (is (= (* 2 delta) (:since-last-move new-state)))))
+      (let [options {:delta 5}
+            new-state (-> (invasion/update invasion/initial options)
+                          (invasion/update options))]
+        (is (= 10 (:since-last-move new-state)))))
 
     (testing "toggle pose every time-to-move"
       (let [time-to-move 1000
@@ -66,30 +66,30 @@
                                 (assoc :time-to-move time-to-move))]
 
         (testing "when below time-to-move don't toggle pose"
-          (let [delta 0
-                new-state (invasion/update original-state delta)]
+          (let [options {:delta 0}
+                new-state (invasion/update original-state options)]
             (is (= :open (:pose new-state)))))
 
         (testing "when at time-to-move toggle pose"
-          (let [delta 1
-                new-state (invasion/update original-state delta)]
+          (let [options {:delta 1}
+                new-state (invasion/update original-state options)]
             (is (= :closed (:pose new-state)))))
 
         (testing "when crossing time-to move toggle pose"
-          (let [delta 2
-                new-state (invasion/update original-state delta)]
+          (let [options {:delta 2}
+                new-state (invasion/update original-state options)]
             (is (= :closed (:pose new-state)))))
 
         (testing "when closed, toggle the pose to open"
-          (let [delta 1
+          (let [options {:delta 1}
                 closed-state (assoc original-state :pose :closed)
-                new-state (invasion/update closed-state delta)]
+                new-state (invasion/update closed-state options)]
             (is (= :open (:pose new-state)))))
 
         (testing "only toggle every 'time-to-move'"
-          (let [delta 1
-                new-state (-> (invasion/update original-state delta)
-                              (invasion/update delta))]
+          (let [options {:delta 1}
+                new-state (-> (invasion/update original-state options)
+                              (invasion/update options))]
             (is (= :closed (:pose new-state)))))))
 
     (testing "move on every update - based on time-to-move"
@@ -101,26 +101,95 @@
                                (assoc :direction :right))]
 
         (testing "doesn't move before it is time"
-          (let [delta 0
-                new-state (invasion/update original-state delta)]
+          (let [options {:delta 0}
+                new-state (invasion/update original-state options)]
             (is (= {:x 0 :y 0} (:position new-state)))))
 
-        (testing "moves the correct direction on time-to-move"
-          (let [delta 1
-                new-state (invasion/update original-state delta)]
+        (testing "moves right on first time-to-move"
+          (let [options {:delta 1 :bounds {:right 100000}}
+                new-state (invasion/update original-state options)]
             (is (= {:x invasion/velocity :y 0} (:position new-state)))))
 
-        (testing "moves the correct direction crossing time-to-move"
-          (let [delta 2
-                new-state (invasion/update original-state delta)]
+        (testing "moves right crossing time-to-move"
+          (let [options {:delta 2 :bounds {:right 100000}}
+                new-state (invasion/update original-state options)]
             (is (= {:x invasion/velocity :y 0} (:position new-state)))))
 
-        (testing "moves respect the direction"
-          (let [delta 1
+        (testing "can move left"
+          (let [options {:delta 1 :bounds {:left -100000 :right 10000}}
                 moving-left (assoc original-state :direction :left)
-                new-state (invasion/update moving-left delta)]
+                new-state (invasion/update moving-left options)]
             (is (= {:x (- invasion/velocity) :y 0} (:position new-state)))))
 
+        (testing "moving down"
+          (testing "move y down when on the right edge, and moving right"
+            (let [right-edge 100
+                  options {:delta 1 :bounds {:right right-edge}}
+                  new-state (-> original-state
+                                (assoc :direction :right)
+                                (assoc-in [:position :x] right-edge)
+                                (invasion/update options))]
+              (is (= {:x right-edge :y invasion/velocity}
+                     (:position new-state)))))
+
+          (testing "move y down when beyond the right edge, and moving right"
+            (let [right-edge 100
+                  options {:delta 1 :bounds {:right right-edge}}
+                  new-state (-> original-state
+                                (assoc :direction :right)
+                                (assoc-in [:position :x] (inc right-edge))
+                                (invasion/update options))]
+              (is (= {:x (inc right-edge) :y invasion/velocity}
+                     (:position new-state)))))
+
+          (testing "after moving down, move to the left"
+            (let [right-edge 100
+                  options {:delta 1 :bounds {:right right-edge}}
+                  new-state (-> original-state
+                                (assoc :direction :right)
+                                (assoc-in [:position :x] right-edge)
+                                (invasion/update options)
+                                (assoc :since-last-move 999) ; Make sure you tick again
+                                (invasion/update options))]
+              (is (= {:x (- right-edge invasion/velocity) :y invasion/velocity}
+                     (:position new-state)))))
+
+          (testing "move y down when on the left edge, and moving left"
+            (let [left-edge 3
+                  options {:delta 1 :bounds {:left left-edge :right 4}}
+                  new-state (-> original-state
+                                (assoc :direction :left)
+                                (assoc-in [:position :x] left-edge)
+                                (invasion/update options))]
+              (is (= {:x left-edge :y invasion/velocity}
+                     (:position new-state)))))
+
+          (testing "move y down when beyond left edge, and moving left"
+            (let [left-edge 3
+                  options {:delta 1 :bounds {:left left-edge :right 4}}
+                  new-state (-> original-state
+                                (assoc :direction :left)
+                                (assoc-in [:position :x] (dec left-edge))
+                                (invasion/update options))]
+              (is (= {:x (dec left-edge) :y invasion/velocity}
+                     (:position new-state)))))
+
+          (testing "after moving down, move to the right"
+            (let [left-edge 0
+                  options {:delta 1 :bounds {:left left-edge :right 10000}}
+                  new-state (-> original-state
+                                (assoc :direction :left)
+                                (assoc-in [:position :x] left-edge)
+                                (invasion/update options)
+                                (assoc :since-last-move 999)
+                                (invasion/update options))]
+              (is (= {:x invasion/velocity :y invasion/velocity}
+                     (:position new-state)))))
+
+          ; GAH YOU messed up, you should be usin the right-edge not position
+          ; for the bounds
+
+          )
 
         ))
     ))
