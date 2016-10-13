@@ -45,52 +45,46 @@
           (is (= image-two (game/image-lookup new-state :medium :closed)))))))
 
   (testing "in :playing"
-    (testing "we track time since last move"
+    (defn- setup-playing-state [& attrs]
+      (-> (apply assoc {} :name :playing :invasion invasion/initial attrs)
+          (game-loop/->initial-game-state)))
+
+    (testing "we track the last timestamp"
       (testing "starting at 0 on the first update"
         (with-redefs [t/epoch (fn [] 1)]
-          (let [playing-state (game-loop/->initial-game-state {:name :playing})
-                new-state (:state (game/update-game playing-state))]
-            (is (= 1 (:last-timestamp new-state)))
-            (is (= 0 (:since-last-move new-state))))))
+          (let [{:keys [state] } (game/update-game (setup-playing-state))]
+            (is (= 1 (:last-timestamp state))))))
 
-      (testing "updates last timestamp and time since last move"
+      (testing "updates last timestamp"
         (with-redefs [t/epoch (fn [] 2)]
-          (let [playing-state (game-loop/->initial-game-state
-                                {:name :playing
+          (let [playing-state (setup-playing-state
                                  :last-timestamp 1
-                                 :since-last-move 0})
-                new-state (:state (game/update-game playing-state))]
-            (is (= 2 (:last-timestamp new-state)))
-            (is (= 1 (:since-last-move new-state))))))
+                                 :since-last-move 0)
+                {:keys [state]} (game/update-game playing-state)]
+            (is (= 2 (:last-timestamp state)))))))
 
-      (testing "when the since-last-move hits velocity, add a tick"
-        (with-redefs [t/epoch (fn [] game/velocity)]
-          (let [playing-state (game-loop/->initial-game-state
-                                {:name :playing
-                                 :last-timestamp 0
-                                 :since-last-move 0 })
-                new-state (:state (game/update-game playing-state))]
-            (is (= 0 (:since-last-move new-state)))
-            (is (= 1 (:ticks new-state))))))
+    (testing "update the invasion with 0 as the delta the first update, regardless of epoch"
+      (with-redefs [t/epoch (fn [] 10000)]
+        (let [{:keys [state]} (game/update-game (setup-playing-state))
+              since-last-move (get-in state [:invasion :since-last-move])]
+          (is (= 0 since-last-move)))))
 
-      (testing "when the since-last-move is greater than velocity, add a tick"
-        (with-redefs [t/epoch (fn [] (inc game/velocity))]
-          (let [playing-state (game-loop/->initial-game-state
-                                {:name :playing
-                                 :last-timestamp 0
-                                 :since-last-move 0})
-                new-state (:state (game/update-game playing-state))]
-            (is (= 0 (:since-last-move new-state)))
-            (is (= 1 (:ticks new-state))))))
+    (testing "update the invasion with the delta on subsequent updates"
+      (with-redefs [t/epoch (fn [] 2)]
+        (let [playing-state (setup-playing-state :last-timestamp 1)
+              {:keys [state]} (game/update-game playing-state)
+              since-last-move (get-in state [:invasion :since-last-move])]
+          (is (= 1 since-last-move)))))
 
-      (testing "increment ticks beyond 1"
-        (with-redefs [t/epoch (fn [] 1)]
-          (let [playing-state (game-loop/->initial-game-state
-                                {:name :playing
-                                 :ticks 1
-                                 :since-last-move game/velocity})
-                new-state (:state (game/update-game playing-state))]
-            (is (= 2 (:ticks new-state)))))))))
+    (testing "uses the bounds when updating the invasion"
+      (with-redefs [t/epoch (fn [] 10000)]
+        (let [playing-state (-> (setup-playing-state :last-timestamp 1)
+                                (assoc-in [:state :invasion :direction] :right)
+                                (assoc-in [:state :invasion :position :x] (:right game/bounds)))
+              {:keys [state]} (game/update-game playing-state)
+              direction (get-in state [:invasion :direction])]
+          (is (= :down direction)))))))
+
 
 (defn invader->image-path []
   (testing "convert to open image"

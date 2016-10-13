@@ -1,7 +1,7 @@
 (ns space-invaders.invasion
   (:refer-clojure :exclude [update]))
 
-(def start-position {:x 1 :y 20})
+(def start-position {:x 3 :y 20})
 (def velocity 4)
 (def column-width 16)
 (def row-height 16)
@@ -15,6 +15,7 @@
   {:pose :open
    :since-last-move 0
    :time-to-move 1000
+   :direction :right
    :position start-position
    :invaders [(take row-length (repeat :small))
               (take row-length (repeat :medium))

@@ -1,12 +1,12 @@
 (ns space-invaders.game
-  (:require [cljs.core.async :as ca]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [space-invaders.invasion :as invasion]
             [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
             [util.image-loader :as image-loader]
             [util.time :as t]))
 
+(def bounds {:left 3 :right 214})
 ; This all looks like it should be moved to invasion
 (defn invader->image-path [invader state]
   (str "images/" (name invader) "_" (name state) ".png"))
@@ -26,10 +26,9 @@
                    (string/split "_"))))
 ; ^ This probably belongs in invasion
 
-(def velocity 1000) ; velocity? Again
-
-
-(defonce initial-app-state {:invasion invasion/initial})
+(defonce initial-app-state
+  {:invasion invasion/initial
+   :bounds {:left 1 :right 220}})
 
 (defmulti update-game
   (fn
@@ -57,23 +56,17 @@
 (defn update-last-timestamp [game-state epoch]
   (assoc game-state :last-timestamp epoch))
 
-(defn update-last-move [state epoch]
-  (if-let [last-move (:since-last-move state)]
-    (assoc state :since-last-move
-           (+ last-move (- epoch (:last-timestamp state))))
-    (assoc state :since-last-move 0)))
-
-(defn update-ticks [game-state]
-  (if (>= (:since-last-move game-state) velocity)
-    (let [ticks (inc (:ticks game-state))]
-      (-> (assoc game-state :since-last-move 0)
-          (assoc :ticks ticks)))
-    game-state))
+(defn update-invasion [{:keys [invasion] :as game} delta]
+  (->> (invasion/update invasion {:delta delta
+                                  :bounds bounds})
+       (assoc game :invasion)))
 
 (defmethod update-game :playing [state]
   (let [epoch (t/epoch)
+        delta (if-let [last-timestamp (:last-timestamp (:state state))]
+                (- epoch last-timestamp)
+                0)
         new-game (-> (:state state)
-                     (update-last-move epoch)
-                     (update-last-timestamp epoch)
-                     (update-ticks))]
+                     (update-invasion delta)
+                     (update-last-timestamp epoch))]
     (assoc state :state new-game)))
