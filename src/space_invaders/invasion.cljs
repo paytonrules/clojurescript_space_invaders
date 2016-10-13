@@ -44,11 +44,18 @@
         new-y (+ y (* (up-down-multiplier direction) velocity))]
     (assoc invasion :position {:x new-x :y new-y})))
 
+(defn- beyond-right-bounds [invasion bounds]
+  (let [right-edge (right-edge invasion)]
+    (and (>= right-edge (:right bounds)))))
+
 (defn- update-direction [{:keys [position direction] :as invasion} bounds]
   (let [{:keys [x y]} position
+        right-edge (right-edge invasion)
         new-direction (cond
-                        (and (>= x (:right bounds)) (= :right direction)) :down
-                        (and (>= x (:right bounds)) (= :down direction)) :left
+                        (and (beyond-right-bounds invasion bounds)
+                             (= :right direction)) :down
+                        (and (beyond-right-bounds invasion bounds)
+                             (= :down direction)) :left
                         (and (<= x (:left bounds)) (= :left direction)) :down
                         (and (<= x (:left bounds)) (= :down direction)) :right
                         :default direction)]

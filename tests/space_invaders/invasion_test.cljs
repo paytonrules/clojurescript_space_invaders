@@ -122,76 +122,66 @@
             (is (= {:x (- invasion/velocity) :y 0} (:position new-state)))))
 
         (testing "moving down"
-          (testing "move y down when on the right edge, and moving right"
-            (let [right-edge 100
-                  options {:delta 1 :bounds {:right right-edge}}
-                  new-state (-> original-state
-                                (assoc :direction :right)
-                                (assoc-in [:position :x] right-edge)
-                                (invasion/update options))]
-              (is (= {:x right-edge :y invasion/velocity}
-                     (:position new-state)))))
+          (testing "on the right edge"
+            (let [right-bounds 100
+                  position (- right-bounds invasion/column-width)
+                  options {:delta 1 :bounds {:right right-bounds}}
+                  state-at-edge (-> original-state
+                                    (assoc :direction :right)
+                                    (assoc :invaders [[:small]])
+                                    (assoc-in [:position :x] position))]
 
-          (testing "move y down when beyond the right edge, and moving right"
-            (let [right-edge 100
-                  options {:delta 1 :bounds {:right right-edge}}
-                  new-state (-> original-state
-                                (assoc :direction :right)
-                                (assoc-in [:position :x] (inc right-edge))
-                                (invasion/update options))]
-              (is (= {:x (inc right-edge) :y invasion/velocity}
-                     (:position new-state)))))
+              (testing "move y down when on the right edge, and moving right"
+                (let [new-state (-> state-at-edge
+                                   (invasion/update options))]
+                  (is (= {:x position :y invasion/velocity}
+                         (:position new-state)))))
 
-          (testing "after moving down, move to the left"
-            (let [right-edge 100
-                  options {:delta 1 :bounds {:right right-edge}}
-                  new-state (-> original-state
-                                (assoc :direction :right)
-                                (assoc-in [:position :x] right-edge)
-                                (invasion/update options)
-                                (assoc :since-last-move 999) ; Make sure you tick again
-                                (invasion/update options))]
-              (is (= {:x (- right-edge invasion/velocity) :y invasion/velocity}
-                     (:position new-state)))))
+              (testing "move y down when beyond the right edge, and moving right"
+                (let [new-state (-> state-at-edge
+                                    (assoc-in [:position :x] (inc position))
+                                    (invasion/update options))]
+                  (is (= {:x (inc position) :y invasion/velocity}
+                         (:position new-state)))))
 
-          (testing "move y down when on the left edge, and moving left"
-            (let [left-edge 3
-                  options {:delta 1 :bounds {:left left-edge :right 4}}
-                  new-state (-> original-state
-                                (assoc :direction :left)
-                                (assoc-in [:position :x] left-edge)
-                                (invasion/update options))]
-              (is (= {:x left-edge :y invasion/velocity}
-                     (:position new-state)))))
+              (testing "after moving down, move to the left"
+                (let [new-state (-> state-at-edge
+                                    (invasion/update options)
+                                    (assoc :since-last-move 999)
+                                    (invasion/update options))]
+                  (is (= {:x (- position invasion/velocity) :y invasion/velocity}
+                         (:position new-state)))))
 
-          (testing "move y down when beyond left edge, and moving left"
-            (let [left-edge 3
-                  options {:delta 1 :bounds {:left left-edge :right 4}}
-                  new-state (-> original-state
-                                (assoc :direction :left)
-                                (assoc-in [:position :x] (dec left-edge))
-                                (invasion/update options))]
-              (is (= {:x (dec left-edge) :y invasion/velocity}
-                     (:position new-state)))))
+            (testing "move y down when on the left bounds, and moving left"
+              (let [left-bounds 3
+                    options {:delta 1 :bounds {:left left-bounds :right 1000}}
+                    new-state (-> original-state
+                                  (assoc :direction :left)
+                                  (assoc-in [:position :x] left-bounds)
+                                  (invasion/update options))]
+                (is (= {:x left-bounds :y invasion/velocity}
+                       (:position new-state)))))
+
+            (testing "move y down when beyond left bounds, and moving left"
+              (let [left-bounds 3
+                    options {:delta 1 :bounds {:left left-bounds :right 4}}
+                    new-state (-> original-state
+                                  (assoc :direction :left)
+                                  (assoc-in [:position :x] (dec left-bounds))
+                                  (invasion/update options))]
+                (is (= {:x (dec left-bounds) :y invasion/velocity}
+                       (:position new-state)))))))
 
           (testing "after moving down, move to the right"
-            (let [left-edge 0
-                  options {:delta 1 :bounds {:left left-edge :right 10000}}
+            (let [left-bounds 0
+                  options {:delta 1 :bounds {:left left-bounds :right 10000}}
                   new-state (-> original-state
                                 (assoc :direction :left)
-                                (assoc-in [:position :x] left-edge)
+                                (assoc-in [:position :x] left-bounds)
                                 (invasion/update options)
                                 (assoc :since-last-move 999)
                                 (invasion/update options))]
               (is (= {:x invasion/velocity :y invasion/velocity}
-                     (:position new-state)))))
-
-          ; GAH YOU messed up, you should be usin the right-edge not position
-          ; for the bounds
-
-          )
-
-        ))
-    ))
+                     (:position new-state))))))))))
 
 (dev-cards-runner #"space-invaders.invasion-test")
