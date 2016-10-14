@@ -25,6 +25,11 @@
 
 (defn pose [{:keys [pose]}] pose)
 
+(defn invaders-and-states []
+  (for [invader invader-types
+        state invader-states]
+    {:character invader :state state}))
+
 (defn invader-position [{:keys [position]} {:keys [row col]}]
   (let [{:keys [x y]} position]
     {:x (+ x (* col column-width))

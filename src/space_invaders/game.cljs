@@ -1,34 +1,20 @@
 (ns space-invaders.game
-  (:require [clojure.string :as string]
+  (:require [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
             [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
             [util.image-loader :as image-loader]
             [util.time :as t]))
 
-(def bounds {:left 3 :right 214})
-; This all looks like it should be moved to invasion
-(defn invader->image-path [invader state]
-  (str "images/" (name invader) "_" (name state) ".png"))
-
-(defn image-lookup [{:keys [state]} image variant]
-  (get-in state [:images image variant]))
-
-(defn enemy-images []
-  (for [invader invasion/invader-types
-        state invasion/invader-states]
-    (invader->image-path invader state)))
-
-(defn image-path->invader-state [image-path]
-  (map keyword (-> (string/split image-path "/")
-                   (last)
-                   (string/replace ".png" "")
-                   (string/split "_"))))
-; ^ This probably belongs in invasion
+(def bounds {:left 3 :right 212})
 
 (defonce initial-app-state
   {:invasion invasion/initial
    :bounds {:left 1 :right 220}})
+
+(defn all-image-paths []
+  (-> (invasion/invaders-and-states)
+      (image-lookup/character-states->image-path)))
 
 (defmulti update-game
   (fn
@@ -39,17 +25,13 @@
   (-> state
       (assoc-in [:state] initial-app-state)
       (assoc-in [:state :name] :loading-images)
-      (assoc :transitions [(partial transitions/load-images! (enemy-images))])))
+      (assoc :transitions [(partial transitions/load-images! (all-image-paths))])))
 
 (defmethod update-game :loading-images [state]
   state)
 
-(defn- image->lookup [table image]
-  (assoc-in table (image-path->invader-state (.-src image)) image))
-
 (defmethod update-game [:loading-images :images-loaded] [state event]
-  (let [image-lookup (->> (:images event)
-                          (reduce image->lookup {}))]
+  (let [image-lookup (image-lookup/image-list->lookup-table (:images event))]
     (-> (assoc-in state [:state :name] :playing)
         (assoc-in [:state :images] image-lookup))))
 

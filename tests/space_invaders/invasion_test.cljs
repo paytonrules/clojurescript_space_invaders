@@ -4,6 +4,12 @@
             [space-invaders.invasion :as invasion]
             [util.game-loop :as game-loop]))
 
+(defn should-provide-the-invaders-and-states []
+  (testing "created from types and states"
+    (is (some #(= {:character :small :state :closed}) (invasion/invaders-and-states)))
+    (is (some #(= {:character :small :state :open}) (invasion/invaders-and-states)))
+    (is (some #(= {:character :medium :state :open}) (invasion/invaders-and-states)))))
+
 (defn test-toggle-back-and-forth []
   (testing "the invaders toggle between two states based on the number of tics"
     (is (= :open (invasion/pose {:pose :open})))

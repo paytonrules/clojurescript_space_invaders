@@ -2,18 +2,18 @@
   (:require [cljs.test :refer-macros [is testing]]
             [runners.devcards :refer-macros [dev-cards-runner]]
             [space-invaders.game :as game]
+            [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
             [util.game-loop :as game-loop]
             [util.time :as t]))
 
-(defn initial-enemy-images []
-  (testing "are created from types and states"
-    (is (some #(re-find #"small_closed.png$" %) (game/enemy-images)))
-    (is (some #(re-find #"small_open.png$" %) (game/enemy-images)))
-    (is (some #(re-find #"medium_open.png$" %) (game/enemy-images)))))
+(defn should-have-the-image-paths []
+  (testing "created from types and states"
+    (is (some #(re-find #"small_closed.png$" %) (game/all-image-paths)))
+    (is (some #(re-find #"small_open.png$" %) (game/all-image-paths)))
+    (is (some #(re-find #"medium_open.png$" %) (game/all-image-paths)))))
 
 (defn update-game []
-
   (testing "first game update"
     (let [new-state (game/update-game (game-loop/->initial-game-state))]
       (testing "begins loading images"
@@ -40,9 +40,9 @@
                (get-in (game/update-game original-state event) [:state :name]))))
 
       (testing "loads all the images in a lookup table"
-        (let [new-state (game/update-game original-state event)]
-          (is (= image-one (game/image-lookup new-state :small :open)))
-          (is (= image-two (game/image-lookup new-state :medium :closed)))))))
+        (let [{:keys [state]} (game/update-game original-state event)]
+          (is (= image-one (image-lookup/->image state :small :open)))
+          (is (= image-two (image-lookup/->image state :medium :closed)))))))
 
   (testing "in :playing"
     (defn- setup-playing-state [& attrs]
@@ -84,21 +84,5 @@
               {:keys [state]} (game/update-game playing-state)
               direction (get-in state [:invasion :direction])]
           (is (= :down direction)))))))
-
-
-(defn invader->image-path []
-  (testing "convert to open image"
-    (is (= "images/small_open.png" (game/invader->image-path :small :open)))
-    (is (= "images/small_closed.png" (game/invader->image-path :small :closed)))
-    (is (= "images/medium_open.png" (game/invader->image-path :medium :open)))))
-
-(defn image-path->invader-state []
-  (testing "convert to invader state"
-    (is (= [:small :open]
-           (game/image-path->invader-state "http://example.com/images/small_open.png")))
-    (is (= [:small :closed]
-           (game/image-path->invader-state "http://example.com/images/small_closed.png")))
-    (is (= [:medium :closed]
-           (game/image-path->invader-state "http://example.com/images/medium_closed.png")))))
 
 (dev-cards-runner #"space-invaders.game-test")
