@@ -1,14 +1,17 @@
 (ns space-invaders.view
-  (:require [space-invaders.presentation :as presentation]))
+  (:require [space-invaders.game :as game]
+            [space-invaders.presentation :as presentation]))
+
 
 (defonce canvas (.getElementById js/document "game"))
 (defonce ctx (.getContext canvas "2d"))
-(defonce w 648)
-(defonce h 672)
+(defonce scale 2)
+(defonce w (* scale (:w game/resolution)))
+(defonce h (* scale (:h game/resolution)))
 (set! (.-width canvas) w)
 (set! (.-height canvas) h)
 (set! (.-imageSmoothingEnabled ctx) false)
-(.scale ctx 3 3)
+(.scale ctx scale scale)
 
 (defn clear-screen []
   (.clearRect ctx 0 0 w h)
