@@ -32,3 +32,9 @@ src/main/cljs/cljs/core.cljs.cache.aot.json
 figwheel_server.log
 .vimrc
 resources/public/cljs
+/bin/
+
+.classpath
+.metadata/
+.project
+RemoteSystemsTempFiles/

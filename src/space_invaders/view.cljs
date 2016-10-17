@@ -24,6 +24,6 @@
 
 (defmethod draw-canvas-contents :playing [state]
   (clear-screen)
-  (doseq [{:keys [image x y]} (presentation/images-with-position state)]
-    (.drawImage ctx image x y)))
+  (doseq [{:keys [image position]} (presentation/images-with-position state)]
+    (.drawImage ctx image (:x position) (:y position))))
 

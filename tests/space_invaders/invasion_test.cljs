@@ -1,8 +1,30 @@
 (ns ^:figwheel-always space-invaders.invasion-test
   (:require [cljs.test :refer-macros [is testing]]
             [runners.devcards :refer-macros [dev-cards-runner]]
-            [space-invaders.invasion :as invasion]
-            [util.game-loop :as game-loop]))
+            [space-invaders.invasion :as invasion]))
+
+(defn should-convert-a-matrix-to-names-and-row-col []
+  (testing "a matrix with one row, one column"
+    (is (= [{:character :small :row 0 :col 0}] (invasion/character-matrix->vector [[:small]]))))
+
+  (testing "a matrix with one row, two columns"
+    (let [expected-list [{:character :small :row 0 :col 0} {:character :small :row 0 :col 1}]]
+      (is (= expected-list (invasion/character-matrix->vector [[:small :small]])))))
+
+  (testing "a matrix with two rows, one column"
+    (let [original-list [[:small] [:medium]]
+          expected-list [{:character :small :row 0 :col 0}
+                         {:character :medium :row 1 :col 0}]]
+      (is (= expected-list (invasion/character-matrix->vector original-list))))))
+
+(defn should-convert-the-row-col-to-offsets []
+  (testing "maps the row/col to actual offsets"
+    (let [row-col-hash [{:character :small :row 3 :col 2}]
+          list-with-offsets (invasion/row-cols->offsets row-col-hash)
+          entry (first list-with-offsets)]
+      (is (= :small (:character entry)))
+      (is (= (* 3 invasion/row-height) (get-in entry [:offset :y])))
+      (is (= (* 2 invasion/column-width) (get-in entry [:offset :x]))))))
 
 (defn should-provide-the-invaders-and-states []
   (testing "created from types and states"
@@ -16,40 +38,38 @@
     (is (= :closed (invasion/pose {:pose :closed})))))
 
 (defn should-provide-invader-positions []
-  (let [invasion {:position {:x 10 :y 10}}]
+  "These tests require the known order. The clients shouldn't."
+  (let [invasion (-> invasion/initial
+                     (assoc :position {:x 10 :y 10}))]
     (testing "starts at the invasion position for 0, 0"
-      (is (= {:x 10 :y 10} (invasion/invader-position
-                             invasion
-                             {:row 0 :col 0}))))
+      (is (= {:character :small :position {:x 10 :y 10}}
+             (first (invasion/invader-positions invasion)))))
 
     (testing "each column is column-width"
-      (is (= {:x (+ 10 invasion/column-width) :y 10}
-             (invasion/invader-position invasion {:row 0 :col 1})))
-      (is (= {:x (+ 10 (* 2 invasion/column-width)) :y 10}
-             (invasion/invader-position invasion {:row 0 :col 2}))))
+      (is (= {:character :small :position {:x (+ 10 invasion/column-width) :y 10}}
+             (second (invasion/invader-positions invasion)))))
 
     (testing "each row is row-height"
-      (is (= {:x 10 :y (+ 10 invasion/row-height)}
-             (invasion/invader-position invasion {:row 1 :col 0}))))))
+      (let [second-row (nth (invasion/invader-positions invasion)
+                            invasion/row-length)]
+        (is (= {:character :medium :position {:x 10 :y (+ 10 invasion/row-height)}}
+               second-row))))))
 
 (defn should-calculate-the-right-most-edge []
   (let [initial-invasion {:position {:x 2}}]
     (testing "with only one row"
       (testing "one invader"
-        (let [invasion (assoc initial-invasion :invaders [[:small]])]
-          (is (= (+ 2 invasion/column-width)
+        (let [one-invader [{:character :small :offset {:x 10 :y 0}}]
+              invasion (assoc initial-invasion :invaders one-invader)]
+          (is (= (+ 2 10 invasion/column-width)
                  (invasion/right-edge invasion)))))
 
-      (testing "many invaders"
-        (let [invasion (assoc initial-invasion :invaders [[:small :small]])]
-          (is (= (+ 2 (* 2 invasion/column-width))
-                 (invasion/right-edge invasion))))))
-
-    (testing "with multiple rows it uses the longest row"
-      (let [invasion (assoc initial-invasion :invaders [[:small]
-                                                        [:small :small]])]
-        (is (= (+ 2 (* 2 invasion/column-width))
-               (invasion/right-edge invasion)))))))
+      (testing "many invaders uses the largest x"
+        (let [many-invaders [{:character :small :offset {:x 10 :y 0}}
+                             {:character :small :offset {:x 50 :y 0}}]
+              invasion (assoc initial-invasion :invaders many-invaders)]
+          (is (= (+ 2 50 invasion/column-width)
+                 (invasion/right-edge invasion))))))))
 
 (defn should-calcluate-the-next-state []
   (testing "accumulate time since last move based on delta"

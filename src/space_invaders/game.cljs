@@ -1,6 +1,7 @@
 (ns space-invaders.game
   (:require [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
+            [space-invaders.laser :as laser]
             [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
             [util.image-loader :as image-loader]
@@ -14,6 +15,7 @@
 
 (defn all-image-paths []
   (-> (invasion/invaders-and-states)
+			(conj laser/character)
       (image-lookup/character-states->image-path)))
 
 (defmulti update-game

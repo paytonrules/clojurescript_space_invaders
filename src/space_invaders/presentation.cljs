@@ -3,21 +3,26 @@
             [space-invaders.image-lookup :as image-lookup]
             [space-invaders.game :as game]))
 
-(defn- image-lookup [{:keys [state]} invader]
+(defn- invader-lookup [state invader]
   (image-lookup/->image
     state
-    invader
+    (:character invader)
     (invasion/pose (:invasion state))))
 
-(defn- image-for-row-col [invasion game-state row col invader]
-  (-> (invasion/invader-position invasion {:row row :col col})
-      (assoc :image (image-lookup game-state invader))))
+(defn- invaders->images [state invaders-with-positions]
+  (map
+    (fn [invader]
+      (assoc invader :image (invader-lookup state invader)))
+  invaders-with-positions))
 
-(defn- images-for-row [invasion game-state row invaders]
-  (map-indexed (partial image-for-row-col invasion game-state row) invaders))
+(defn- invasion->images [{:keys [invasion] :as state}]
+  (->> (invasion/invader-positions invasion)
+       (invaders->images state)))
+
+(defn laser->images [{:keys [laser] :as state}]
+  (assoc laser :image (image-lookup/->image state :laser :default)))
 
 (defn images-with-position [{:keys [state] :as game-state}]
-  (let [invasion (:invasion state)]
-    (->> (:invaders invasion)
-         (map-indexed (partial images-for-row invasion game-state))
-         (flatten))))
+  (concat (invasion->images state)
+          [(laser->images state)]))
+

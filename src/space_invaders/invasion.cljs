@@ -1,5 +1,6 @@
 (ns space-invaders.invasion
-  (:refer-clojure :exclude [update]))
+  (:refer-clojure :exclude [update])
+  (:require [clojure.spec :as spec]))
 
 (def start-position {:x 3 :y 20})
 (def velocity 4)
@@ -11,17 +12,40 @@
 (def left-right-multiplier {:left -1 :right 1 :down 0})
 (def up-down-multiplier {:left 0 :right 0 :down 1})
 
+(defn character-matrix->vector [matrix]
+  (-> (map-indexed
+        (fn [row-idx row]
+          (map-indexed
+            (fn [col-idx col]
+              {:character col :row row-idx :col col-idx})
+            row))
+        matrix)
+      (flatten)))
+
+(defn row-cols->offsets [row-col-hash]
+  (map
+    (fn [h]
+      {:character (:character h)
+       :offset {:x (* column-width (:col h))
+                :y (* row-height (:row h))}})
+    row-col-hash))
+
+(defonce invader-matrix
+  [(take row-length (repeat :small))
+   (take row-length (repeat :medium))
+   (take row-length (repeat :medium))
+   (take row-length (repeat :large))
+   (take row-length (repeat :large))])
+
 (defonce initial
   {:pose :open
    :since-last-move 0
    :time-to-move 1000
    :direction :right
    :position start-position
-   :invaders [(take row-length (repeat :small))
-              (take row-length (repeat :medium))
-              (take row-length (repeat :medium))
-              (take row-length (repeat :large))
-              (take row-length (repeat :large))]})
+   :invaders (-> invader-matrix
+                 (character-matrix->vector)
+                 (row-cols->offsets))})
 
 (defn pose [{:keys [pose]}] pose)
 
@@ -30,14 +54,23 @@
         state invader-states]
     {:character invader :state state}))
 
+(defn invader-positions [{:keys [invaders position]}]
+  (map
+    #(-> (assoc % :position {:x (+ (:x position) (get-in % [:offset :x]))
+                             :y (+ (:y position) (get-in % [:offset :y]))})
+         (dissoc :offset))
+    invaders))
+
+; DELETE ME
 (defn invader-position [{:keys [position]} {:keys [row col]}]
   (let [{:keys [x y]} position]
     {:x (+ x (* col column-width))
      :y (+ y (* row row-height))}))
 
 (defn right-edge [{:keys [invaders position]}]
-  (let [longest-row-length (apply max (map count invaders))]
-    (+ (:x position) (* longest-row-length column-width))))
+  (let [right-positions (map #(get-in % [:offset :x]) invaders)
+        farthest-right-position (apply max right-positions)]
+    (+ (:x position) farthest-right-position column-width)))
 
 (defn- toggle-pose [{:keys [pose] :as invasion}]
   (if (= :closed pose)
