@@ -13,6 +13,9 @@
 (set! (.-imageSmoothingEnabled ctx) false)
 (.scale ctx scale scale)
 
+(.addEventListener canvas "keydown" #(game/keydown! %1) false)
+(.addEventListener canvas "keyup" #(game/keyup! %1) false)
+
 (defn clear-screen []
   (.clearRect ctx 0 0 w h)
   (set! (.-fillStyle ctx) "#FFFFFF"))

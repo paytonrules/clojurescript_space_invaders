@@ -10,6 +10,9 @@
 (def bounds {:left 3 :right 212})
 (def resolution {:w 217 :h 248})
 
+(defn keydown! [evt])
+(defn keyup! [evt])
+
 (defonce initial-app-state
   {:invasion invasion/initial
    :laser laser/initial
