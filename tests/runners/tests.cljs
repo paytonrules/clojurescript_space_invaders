@@ -1,5 +1,6 @@
 (ns runners.tests
-  (:require [space-invaders.game-test]
+  (:require [space-invaders.bullet-test]
+            [space-invaders.game-test]
             [space-invaders.image-lookup-test]
             [space-invaders.invasion-test]
             [space-invaders.laser-test]
