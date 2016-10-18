@@ -46,19 +46,31 @@
             different-delta (assoc options :delta 2)
             old-position (get-in old-state [:position :x])
             new-position (get-in (laser/update old-state different-delta) [:position :x])]
-        (is (= (+ old-position 2.5) new-position))))))
+        (is (= (+ old-position 10) new-position))))))
 
 (defn should-update-velocity []
-  (testing "move-left adds negative velocity"
-    (is (= (- laser/speed)
-           (:velocity (laser/move-left laser/initial)))))
+  (testing "moving-left"
+    (testing "adds negative velocity"
+      (is (= (- laser/speed)
+             (:velocity (laser/move-left laser/initial)))))
 
-  (testing "move-left accumulates"
-    (let [moving-right-laser (assoc laser/initial :velocity laser/speed)]
-      (is (= 0 (:velocity (laser/move-left moving-right-laser))))))
+    (testing "accumulates"
+      (let [moving-right-laser (assoc laser/initial :velocity laser/speed)]
+        (is (= 0 (:velocity (laser/move-left moving-right-laser))))))
 
-  (testing "can move-right too"
-     (is (= laser/speed
-            (:velocity (laser/move-right laser/initial))))))
+    (testing "respects the max-speed"
+      (is (= (- laser/speed)
+             (:velocity (-> (laser/move-left laser/initial)
+                            (laser/move-left)))))))
+
+  (testing "moving-right"
+    (testing "adds positive velocity"
+      (is (= laser/speed
+             (:velocity (laser/move-right laser/initial)))))
+
+    (testing "respects the max speed"
+      (is (= laser/speed
+             (:velocity (-> (laser/move-right laser/initial)
+                            (laser/move-right))))))))
 
 (dev-cards-runner #"space-invaders.laser-test")
