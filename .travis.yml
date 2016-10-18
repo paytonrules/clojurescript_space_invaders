@@ -1,2 +1,1 @@
-lein: lein2
-script: lein2 cljsbuild test
+script: lein cljsbuild test
