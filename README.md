@@ -25,17 +25,4 @@ Using the doo test runner.
 
 Phantomjs 2.0
 
-## Todo
-
-- Get position changing
-  - Start with an initial position
-  - Move it each tick, should it be called ticks?
-- Get the spacing right
-  - Probably a lookup table
-  - Invaders namespace
-- Game over on crash into ground
-- Travis CI cause why not?
-- Try out using Eclipse
-- Add gunner
-- Blockers
 

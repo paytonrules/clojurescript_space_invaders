@@ -1,6 +1,7 @@
 (ns space-invaders.view
   (:require [space-invaders.game :as game]
-            [space-invaders.presentation :as presentation]))
+            [space-invaders.presentation :as presentation]
+            [space-invaders.transitions :as transitions]))
 
 
 (defonce canvas (.getElementById js/document "game"))
@@ -13,8 +14,8 @@
 (set! (.-imageSmoothingEnabled ctx) false)
 (.scale ctx scale scale)
 
-(.addEventListener canvas "keydown" #(game/keydown! %1) false)
-(.addEventListener canvas "keyup" #(game/keyup! %1) false)
+(.addEventListener canvas "keydown" #(transitions/key-down! %1) false)
+(.addEventListener canvas "keyup" #(transitions/key-up! %1) false)
 
 (defn clear-screen []
   (.clearRect ctx 0 0 w h)

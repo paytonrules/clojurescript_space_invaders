@@ -4,15 +4,16 @@
 
 (defn list-of-tests [test-namespace]
   (->> (ana-api/ns-publics (symbol test-namespace))
-       (remove (comp :test second))
-       (remove (comp :anonymous second))
+       (remove (comp :test val))
+       (remove (comp :anonymous val))
        (mapcat (fn [[short-name details]]
                  (cons
                    (str "**" short-name "**")
                    (list (list (:name details))))))))
 
 (defn tests-matching-regex [test-regex]
-  (->> (map str (ana-api/all-ns))
+  (->> (ana-api/all-ns)
+       (map str)
        (filter #(re-matches test-regex %))
        (sort)
        (mapcat (fn [test-ns]

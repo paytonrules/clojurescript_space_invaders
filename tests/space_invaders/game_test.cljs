@@ -4,6 +4,7 @@
             [space-invaders.game :as game]
             [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
+            [space-invaders.laser :as laser]
             [util.game-loop :as game-loop]
             [util.time :as t]))
 
@@ -13,7 +14,6 @@
     (is (some #(re-find #"small_open.png$" %) (game/all-image-paths)))
     (is (some #(re-find #"medium_open.png$" %) (game/all-image-paths)))
     (is (some #(re-find #"laser_default.png$" %) (game/all-image-paths)))))
-  
 
 (defn update-game []
   (testing "first game update"
@@ -48,7 +48,7 @@
 
   (testing "in :playing"
     (defn- setup-playing-state [& attrs]
-      (-> (apply assoc {} :name :playing :invasion invasion/initial attrs)
+      (-> (apply assoc game/initial-app-state :name :playing attrs)
           (game-loop/->initial-game-state)))
 
     (testing "we track the last timestamp"
@@ -85,6 +85,27 @@
                                 (assoc-in [:state :invasion :position :x] (:right game/bounds)))
               {:keys [state]} (game/update-game playing-state)
               direction (get-in state [:invasion :direction])]
-          (is (= :down direction)))))))
+          (is (= :down direction)))))
+
+    (testing "updating laser"
+      (with-redefs [t/epoch (fn [] 2)]
+        (let [playing-state (-> (setup-playing-state :last-timestamp 1)
+                                (assoc-in [:state :laser :velocity] 5))
+              {:keys [state]} (game/update-game playing-state)
+              position (get-in state [:laser :position :x])
+              expected-position (+ 5 (get-in laser/initial [:position :x]))]
+          (is (= expected-position position)))))
+
+    (testing "move-left events"
+      (let [state (setup-playing-state)
+            velocity (-> (game/update-game state {:name :move-left})
+                         (get-in [:state :laser :velocity]))]
+        (is (= (- laser/speed) velocity))))
+
+    (testing "move-right events"
+      (let [state (setup-playing-state)
+            velocity (-> (game/update-game state {:name :move-right})
+                         (get-in [:state :laser :velocity]))]
+        (is (= laser/speed velocity))))))
 
 (dev-cards-runner #"space-invaders.game-test")

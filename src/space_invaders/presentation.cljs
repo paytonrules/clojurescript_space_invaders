@@ -1,7 +1,7 @@
 (ns space-invaders.presentation
   (:require [space-invaders.invasion :as invasion]
             [space-invaders.image-lookup :as image-lookup]
-            [space-invaders.game :as game]))
+            [space-invaders.laser :as laser]))
 
 (defn- invader-lookup [state invader]
   (image-lookup/->image
@@ -20,7 +20,10 @@
        (invaders->images state)))
 
 (defn laser->images [{:keys [laser] :as state}]
-  (assoc laser :image (image-lookup/->image state :laser :default)))
+  (assoc laser :image (image-lookup/->image
+                        state
+                        (:character laser/character)
+                        (:state laser/character))))
 
 (defn images-with-position [{:keys [state] :as game-state}]
   (concat (invasion->images state)
