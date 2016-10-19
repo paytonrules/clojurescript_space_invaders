@@ -1,5 +1,6 @@
 (ns space-invaders.presentation
-  (:require [space-invaders.invasion :as invasion]
+  (:require [space-invaders.bullet :as bullet]
+            [space-invaders.invasion :as invasion]
             [space-invaders.image-lookup :as image-lookup]
             [space-invaders.laser :as laser]))
 
@@ -25,7 +26,13 @@
                         (:character laser/character)
                         (:state laser/character))))
 
+(defn bullet->image [{:keys [bullet] :as game}]
+  (assoc bullet :image (image-lookup/->image
+                         game
+                         (:character bullet/character)
+                         (:state bullet/character))))
+
 (defn images-with-position [{:keys [game]}]
   (concat (invasion->images game)
-          [(laser->images game)]))
+          [(laser->images game) (bullet->image game)]))
 

@@ -6,14 +6,16 @@
   (:require-macros [cljs.test :refer [is testing]]
                    [runners.devcards :refer [dev-cards-runner]]))
 
-(defn should-map-invaders-to-images-and-positions []
-  (testing "map invaders on each row and column"
+(defn should-map-characters-to-images-and-positions []
+  (testing "map all characters to images"
     (let [small-image (js-obj)
           medium-image (js-obj)
           large-image (js-obj)
           laser-image (js-obj)
+          bullet-image (js-obj)
           position {:x 5 :y 7}
           laser-position {:x 30 :y 40}
+          bullet-position {:x 50 :y 60}
           state (gl/->initial-game-state
                   {:invasion
                    {:pose :open
@@ -22,10 +24,12 @@
                                {:character :medium :offset {:x 20 :y 10}}
                                {:character :large :offset {:x 10 :y 20}}]}
                    :laser {:position laser-position}
+                   :bullet {:position bullet-position}
                    :images {:small {:open small-image}
                             :medium {:open medium-image}
                             :large {:open large-image}
-                            :laser {:default laser-image}}})
+                            :laser {:default laser-image}
+                            :bullet {:default bullet-image}}})
           images (view/images-with-position state)]
 
       (testing "image in upper left corner"
@@ -50,7 +54,12 @@
         (let [{:keys [image position]} (nth images 3)]
           (is (= laser-image image))
           (is (= 30 (:x position)))
-          (is (= 40 (:y position))))))))
+          (is (= 40 (:y position)))))
+
+      (testing "displays the bullet image. Order dependent still"
+        (let [{:keys [image position]} (nth images 4)]
+          (is (= bullet-image image))
+          (is (= bullet-position position)))))))
 
 (defn should-map-invaders-to-closed-state []
   (testing "map invaders closed state"

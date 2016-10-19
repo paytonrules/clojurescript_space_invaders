@@ -17,7 +17,6 @@
     (events/load-images! image-paths fake-image-loader)
     (is (= @images-loaded image-paths))))
 
-
 (defn- check-in-the-future [comparison done]
   (.setTimeout js/window #(do (is (comparison)) (done)) 10))
 

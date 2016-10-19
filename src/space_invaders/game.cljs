@@ -19,6 +19,7 @@
 (defn all-image-paths []
   (-> (invasion/invaders-and-states)
 			(conj laser/character)
+      (conj bullet/character)
       (image-lookup/character-states->image-path)))
 
 (defmulti update-game

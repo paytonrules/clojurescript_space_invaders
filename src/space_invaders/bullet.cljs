@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [update]))
 
 (def velocity 0.200)
+(def character {:character :bullet :state :default})
 
 (defn create [position]
   {:position position})

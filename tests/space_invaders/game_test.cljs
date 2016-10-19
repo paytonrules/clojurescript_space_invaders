@@ -14,7 +14,8 @@
     (is (some #(re-find #"small_closed.png$" %) (game/all-image-paths)))
     (is (some #(re-find #"small_open.png$" %) (game/all-image-paths)))
     (is (some #(re-find #"medium_open.png$" %) (game/all-image-paths)))
-    (is (some #(re-find #"laser_default.png$" %) (game/all-image-paths)))))
+    (is (some #(re-find #"laser_default.png$" %) (game/all-image-paths)))
+    (is (some #(re-find #"bullet_default.png$" %) (game/all-image-paths)))))
 
 (defn update-game []
   (testing "first game update"
