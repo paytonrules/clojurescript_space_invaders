@@ -1,10 +1,10 @@
-(ns ^:figwheel-always space-invaders.transitions-test
+(ns ^:figwheel-always space-invaders.events-test
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :as ca]
             [cljs.test :refer-macros [async is testing]]
-            [util.game-loop :as gl]
             [runners.devcards :refer-macros [dev-cards-runner]]
-            [space-invaders.transitions :as transitions]))
+            [space-invaders.events :as events]
+            [util.game-loop :as gl]))
 
 (def ^{:private true} images-done-chan (ca/chan))
 (def ^{:private true} images-loaded (atom nil))
@@ -14,7 +14,7 @@
 
 (defn loads-images-from-their-paths []
   (let [image-paths ["path/one.png" "path/two.png"]]
-    (transitions/load-images! image-paths fake-image-loader)
+    (events/load-images! image-paths fake-image-loader)
     (is (= @images-loaded image-paths))))
 
 
@@ -29,7 +29,7 @@
           expected-event {:name :images-loaded
                           :images [image-one image-two]}]
 
-      (transitions/load-images! ["one" "two"] fake-image-loader)
+      (events/load-images! ["one" "two"] fake-image-loader)
       (go (ca/>! images-done-chan [image-one image-two]))
 
       (check-in-the-future #(= expected-event (gl/take-event!)) done))))
@@ -37,32 +37,32 @@
 (defn should-fire-move-events []
   (testing "moves right on ArrowRight down"
     (gl/clear-events!)
-    (transitions/key-down! (js-obj "key" "ArrowRight"))
+    (events/key-down! (js-obj "key" "ArrowRight"))
     (let [expected-event {:name :move-right}]
       (is (= expected-event (gl/take-event!)))))
 
   (testing "moves left on ArrowLeft down"
     (gl/clear-events!)
-    (transitions/key-down! (js-obj "key" "ArrowLeft"))
+    (events/key-down! (js-obj "key" "ArrowLeft"))
     (let [expected-event {:name :move-left}]
       (is (= expected-event (gl/take-event!)))))
 
   (testing "moves left on ArrowRight up"
     (gl/clear-events!)
-    (transitions/key-up! (js-obj "key" "ArrowRight"))
+    (events/key-up! (js-obj "key" "ArrowRight"))
     (let [expected-event {:name :move-left}]
       (is (= expected-event (gl/take-event!)))))
 
   (testing "moves left on ArrowLeft down"
     (gl/clear-events!)
-    (transitions/key-up! (js-obj "key" "ArrowLeft"))
+    (events/key-up! (js-obj "key" "ArrowLeft"))
     (let [expected-event {:name :move-right}]
       (is (= expected-event (gl/take-event!))))))
 
 (defn should-fire-bullets-on-spacebar []
   (gl/clear-events!)
-  (transitions/key-down! (js-obj "key" " "))
+  (events/key-down! (js-obj "key" " "))
   (let [expected-event {:name :fire}]
     (is (= expected-event (gl/take-event!)))))
 
-(dev-cards-runner #"space-invaders.transitions-test")
+(dev-cards-runner #"space-invaders.events-test")

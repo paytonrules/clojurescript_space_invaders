@@ -1,4 +1,4 @@
-(ns space-invaders.transitions
+(ns space-invaders.events
   (:require [cljs.core.async :as ca]
             [util.game-loop :as gl]
             [util.image-loader :as image-loader]))

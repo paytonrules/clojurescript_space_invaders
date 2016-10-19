@@ -1,9 +1,9 @@
 (ns space-invaders.game
   (:require [space-invaders.bullet :as bullet]
+            [space-invaders.events :as events]
             [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
             [space-invaders.laser :as laser]
-            [space-invaders.transitions :as transitions]
             [util.game-loop :as game-loop]
             [util.image-loader :as image-loader]
             [util.time :as t]))
@@ -30,7 +30,7 @@
   (-> state
       (assoc-in [:game] initial-app-state)
       (assoc-in [:game :name] :loading-images)
-      (assoc :transitions [(partial transitions/load-images! (all-image-paths))])))
+      (assoc :transitions [(partial events/load-images! (all-image-paths))])))
 
 (defmethod update-game :loading-images [state]
   state)
