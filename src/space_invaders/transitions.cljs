@@ -15,6 +15,7 @@
   (case (.-key evt)
     "ArrowRight" (gl/fire-event! {:name :move-right})
     "ArrowLeft"  (gl/fire-event! {:name :move-left})
+    " " (gl/fire-event! {:name :fire})
     nil))
 
 (defn key-up! [evt]

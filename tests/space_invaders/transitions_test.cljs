@@ -59,4 +59,10 @@
     (let [expected-event {:name :move-right}]
       (is (= expected-event (gl/take-event!))))))
 
+(defn should-fire-bullets-on-spacebar []
+  (gl/clear-events!)
+  (transitions/key-down! (js-obj "key" " "))
+  (let [expected-event {:name :fire}]
+    (is (= expected-event (gl/take-event!)))))
+
 (dev-cards-runner #"space-invaders.transitions-test")

@@ -1,5 +1,6 @@
 (ns space-invaders.game
-  (:require [space-invaders.image-lookup :as image-lookup]
+  (:require [space-invaders.bullet :as bullet]
+            [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
             [space-invaders.laser :as laser]
             [space-invaders.transitions :as transitions]
@@ -46,6 +47,18 @@
 (defmethod update-game [:playing :move-right] [state event]
   (->> (laser/move-right (get-in state [:state :laser]))
        (assoc-in state [:state :laser])))
+
+(defn- create-bullet [{:keys [state] :as game-state}]
+  (let [position (get-in state [:laser :position])]
+     (bullet/create position)))
+
+(defn- bullet-present? [game]
+  (not (nil? (:bullet game))))
+
+(defmethod update-game [:playing :fire] [state event]
+  (if (bullet-present? (:state state))
+    state
+    (assoc-in state [:state :bullet] (create-bullet state))))
 
 (defn update-last-timestamp [game-state epoch]
   (assoc game-state :last-timestamp epoch))

@@ -1,6 +1,7 @@
 (ns ^:figwheel-always space-invaders.game-test
   (:require [cljs.test :refer-macros [is testing]]
             [runners.devcards :refer-macros [dev-cards-runner]]
+            [space-invaders.bullet :as bullet]
             [space-invaders.game :as game]
             [space-invaders.image-lookup :as image-lookup]
             [space-invaders.invasion :as invasion]
@@ -106,6 +107,29 @@
       (let [state (setup-playing-state)
             velocity (-> (game/update-game state {:name :move-right})
                          (get-in [:state :laser :velocity]))]
-        (is (= laser/speed velocity))))))
+        (is (= laser/speed velocity))))
+
+    (testing "fire event"
+      (testing "create a bullet at the lasers location"
+        (let [state (setup-playing-state)
+              bullet (-> (game/update-game state {:name :fire})
+                         (get-in [:state :bullet]))
+              expected-position (:position laser/initial)
+              actual-position (:position bullet)]
+          (is (= expected-position actual-position))))
+
+      (testing "do not create two bullets at once"
+        (with-redefs [t/epoch #(fn [] 2)]
+          (let [state (setup-playing-state)
+                bullet (-> state
+                           (assoc-in [:state :last-timestamp] 1)
+                           (game/update-game {:name :fire})
+                           (game/update-game {:name :move-left})
+                           (game/update-game)
+                           (game/update-game {:name :fire})
+                           (get-in [:state :bullet]))
+                expected-position (:position laser/initial)
+                actual-position (:position bullet)]
+            (is (= expected-position actual-position))))))))
 
 (dev-cards-runner #"space-invaders.game-test")
