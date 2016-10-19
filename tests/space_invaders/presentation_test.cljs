@@ -50,9 +50,7 @@
         (let [{:keys [image position]} (nth images 3)]
           (is (= laser-image image))
           (is (= 30 (:x position)))
-          (is (= 40 (:y position)))))
-     )))
-
+          (is (= 40 (:y position))))))))
 
 (defn should-map-invaders-to-closed-state []
   (testing "map invaders closed state"

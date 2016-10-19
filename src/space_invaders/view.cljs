@@ -21,16 +21,16 @@
   (.clearRect ctx 0 0 w h)
   (set! (.-fillStyle ctx) "#FFFFFF"))
 
-(defmulti draw-canvas-contents (fn [{:keys [state]}] (:name state)))
+(defmulti draw-canvas-contents (fn [{:keys [game]}] (:name game)))
 
 (defmethod draw-canvas-contents nil [state]
   (clear-screen))
 
-(defmethod draw-canvas-contents :loading-images [state]
+(defmethod draw-canvas-contents :loading-images [game]
   (clear-screen))
 
-(defmethod draw-canvas-contents :playing [state]
+(defmethod draw-canvas-contents :playing [game]
   (clear-screen)
-  (doseq [{:keys [image position]} (presentation/images-with-position state)]
+  (doseq [{:keys [image position]} (presentation/images-with-position game)]
     (.drawImage ctx image (:x position) (:y position))))
 

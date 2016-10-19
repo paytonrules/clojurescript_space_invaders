@@ -23,13 +23,13 @@
 
 (defmulti update-game
   (fn
-    ([state] (get-in state [:state :name]))
-    ([state event] [(get-in state [:state :name]) (:name event)])))
+    ([state] (get-in state [:game :name]))
+    ([state event] [(get-in state [:game :name]) (:name event)])))
 
 (defmethod update-game nil [state]
   (-> state
-      (assoc-in [:state] initial-app-state)
-      (assoc-in [:state :name] :loading-images)
+      (assoc-in [:game] initial-app-state)
+      (assoc-in [:game :name] :loading-images)
       (assoc :transitions [(partial transitions/load-images! (all-image-paths))])))
 
 (defmethod update-game :loading-images [state]
@@ -37,31 +37,31 @@
 
 (defmethod update-game [:loading-images :images-loaded] [state event]
   (let [image-lookup (image-lookup/image-list->lookup-table (:images event))]
-    (-> (assoc-in state [:state :name] :playing)
-        (assoc-in [:state :images] image-lookup))))
+    (-> (assoc-in state [:game :name] :playing)
+        (assoc-in [:game :images] image-lookup))))
 
 (defmethod update-game [:playing :move-left] [state event]
-  (->> (laser/move-left (get-in state [:state :laser]))
-       (assoc-in state [:state :laser])))
+  (->> (laser/move-left (get-in state [:game :laser]))
+       (assoc-in state [:game :laser])))
 
 (defmethod update-game [:playing :move-right] [state event]
-  (->> (laser/move-right (get-in state [:state :laser]))
-       (assoc-in state [:state :laser])))
+  (->> (laser/move-right (get-in state [:game :laser]))
+       (assoc-in state [:game :laser])))
 
-(defn- create-bullet [{:keys [state] :as game-state}]
-  (let [position (get-in state [:laser :position])]
+(defn- create-bullet [{:keys [game]}]
+  (let [position (get-in game [:laser :position])]
      (bullet/create position)))
 
 (defn- bullet-present? [game]
   (not (nil? (:bullet game))))
 
 (defmethod update-game [:playing :fire] [state event]
-  (if (bullet-present? (:state state))
+  (if (bullet-present? (:game state))
     state
-    (assoc-in state [:state :bullet] (create-bullet state))))
+    (assoc-in state [:game :bullet] (create-bullet state))))
 
-(defn update-last-timestamp [game-state epoch]
-  (assoc game-state :last-timestamp epoch))
+(defn update-last-timestamp [game epoch]
+  (assoc game :last-timestamp epoch))
 
 (defn update-invasion [{:keys [invasion] :as game} delta]
   (->> (invasion/update invasion {:delta delta
@@ -74,11 +74,11 @@
 
 (defmethod update-game :playing [state]
   (let [epoch (t/epoch)
-        delta (if-let [last-timestamp (:last-timestamp (:state state))]
+        delta (if-let [last-timestamp (:last-timestamp (:game state))]
                 (- epoch last-timestamp)
                 0)
-        new-game (-> (:state state)
+        new-game (-> (:game state)
                      (update-invasion delta)
                      (update-laser delta)
                      (update-last-timestamp epoch))]
-    (assoc state :state new-game)))
+    (assoc state :game new-game)))

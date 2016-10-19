@@ -2,18 +2,18 @@
   (:require [cljs.core.async :as ca])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
-(defrecord GameState [state transitions quit])
+(defrecord GameState [game transitions quit])
 
 (defn ->initial-game-state
   ([]
    (->initial-game-state {}))
-  ([state]
-    (->GameState state [] false)))
+  ([game]
+    (->GameState game [] false)))
 
 (defn ->quit-state
   ([] (->quit-state {} []))
-  ([state transitions]
-   (->GameState state transitions true)))
+  ([game transitions]
+   (->GameState game transitions true)))
 
 (def state (atom nil))
 (def events (atom []))

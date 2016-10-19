@@ -20,7 +20,7 @@
   (testing "first game update"
     (let [new-state (game/update-game (game-loop/->initial-game-state))]
       (testing "begins loading images"
-        (is (= :loading-images (get-in new-state [:state :name])))
+        (is (= :loading-images (get-in new-state [:game :name])))
         (is (= 1 (count (:transitions new-state)))))
 
       (testing (str "each row of invaders is " invasion/row-length " long")
@@ -38,14 +38,15 @@
           event {:name :images-loaded
                  :images [image-one image-two]}
           original-state (game-loop/->initial-game-state {:name :loading-images})]
+
       (testing "moves the state to playing"
         (is (= :playing
-               (get-in (game/update-game original-state event) [:state :name]))))
+               (get-in (game/update-game original-state event) [:game :name]))))
 
       (testing "loads all the images in a lookup table"
-        (let [{:keys [state]} (game/update-game original-state event)]
-          (is (= image-one (image-lookup/->image state :small :open)))
-          (is (= image-two (image-lookup/->image state :medium :closed)))))))
+        (let [{:keys [game]} (game/update-game original-state event)]
+          (is (= image-one (image-lookup/->image game :small :open)))
+          (is (= image-two (image-lookup/->image game :medium :closed)))))))
 
   (testing "in :playing"
     (defn- setup-playing-state [& attrs]
@@ -55,65 +56,65 @@
     (testing "we track the last timestamp"
       (testing "starting at 0 on the first update"
         (with-redefs [t/epoch (fn [] 1)]
-          (let [{:keys [state] } (game/update-game (setup-playing-state))]
-            (is (= 1 (:last-timestamp state))))))
+          (let [{:keys [game] } (game/update-game (setup-playing-state))]
+            (is (= 1 (:last-timestamp game))))))
 
       (testing "updates last timestamp"
         (with-redefs [t/epoch (fn [] 2)]
           (let [playing-state (setup-playing-state
                                  :last-timestamp 1
                                  :since-last-move 0)
-                {:keys [state]} (game/update-game playing-state)]
-            (is (= 2 (:last-timestamp state)))))))
+                {:keys [game]} (game/update-game playing-state)]
+            (is (= 2 (:last-timestamp game)))))))
 
     (testing "update the invasion with 0 as the delta the first update, regardless of epoch"
       (with-redefs [t/epoch (fn [] 10000)]
-        (let [{:keys [state]} (game/update-game (setup-playing-state))
-              since-last-move (get-in state [:invasion :since-last-move])]
+        (let [{:keys [game]} (game/update-game (setup-playing-state))
+              since-last-move (get-in game [:invasion :since-last-move])]
           (is (= 0 since-last-move)))))
 
     (testing "update the invasion with the delta on subsequent updates"
       (with-redefs [t/epoch (fn [] 2)]
         (let [playing-state (setup-playing-state :last-timestamp 1)
-              {:keys [state]} (game/update-game playing-state)
-              since-last-move (get-in state [:invasion :since-last-move])]
+              {:keys [game]} (game/update-game playing-state)
+              since-last-move (get-in game [:invasion :since-last-move])]
           (is (= 1 since-last-move)))))
 
     (testing "uses the bounds when updating the invasion"
       (with-redefs [t/epoch (fn [] 10000)]
         (let [playing-state (-> (setup-playing-state :last-timestamp 1)
-                                (assoc-in [:state :invasion :direction] :right)
-                                (assoc-in [:state :invasion :position :x] (:right game/bounds)))
-              {:keys [state]} (game/update-game playing-state)
-              direction (get-in state [:invasion :direction])]
+                                (assoc-in [:game :invasion :direction] :right)
+                                (assoc-in [:game :invasion :position :x] (:right game/bounds)))
+              {:keys [game]} (game/update-game playing-state)
+              direction (get-in game [:invasion :direction])]
           (is (= :down direction)))))
 
     (testing "updating laser"
       (with-redefs [t/epoch (fn [] 2)]
         (let [playing-state (-> (setup-playing-state :last-timestamp 1)
-                                (assoc-in [:state :laser :velocity] 5))
-              {:keys [state]} (game/update-game playing-state)
-              position (get-in state [:laser :position :x])
+                                (assoc-in [:game :laser :velocity] 5))
+              {:keys [game]} (game/update-game playing-state)
+              position (get-in game [:laser :position :x])
               expected-position (+ 5 (get-in laser/initial [:position :x]))]
           (is (= expected-position position)))))
 
     (testing "move-left events"
       (let [state (setup-playing-state)
             velocity (-> (game/update-game state {:name :move-left})
-                         (get-in [:state :laser :velocity]))]
+                         (get-in [:game :laser :velocity]))]
         (is (= (- laser/speed) velocity))))
 
     (testing "move-right events"
       (let [state (setup-playing-state)
             velocity (-> (game/update-game state {:name :move-right})
-                         (get-in [:state :laser :velocity]))]
+                         (get-in [:game :laser :velocity]))]
         (is (= laser/speed velocity))))
 
     (testing "fire event"
       (testing "create a bullet at the lasers location"
         (let [state (setup-playing-state)
               bullet (-> (game/update-game state {:name :fire})
-                         (get-in [:state :bullet]))
+                         (get-in [:game :bullet]))
               expected-position (:position laser/initial)
               actual-position (:position bullet)]
           (is (= expected-position actual-position))))
@@ -122,12 +123,12 @@
         (with-redefs [t/epoch #(fn [] 2)]
           (let [state (setup-playing-state)
                 bullet (-> state
-                           (assoc-in [:state :last-timestamp] 1)
+                           (assoc-in [:game :last-timestamp] 1)
                            (game/update-game {:name :fire})
                            (game/update-game {:name :move-left})
                            (game/update-game)
                            (game/update-game {:name :fire})
-                           (get-in [:state :bullet]))
+                           (get-in [:game :bullet]))
                 expected-position (:position laser/initial)
                 actual-position (:position bullet)]
             (is (= expected-position actual-position))))))))

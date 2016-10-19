@@ -61,8 +61,8 @@
 (defn draw-and-render-frame []
   (reset-frames!)
   (gl/start! {:draw draw-spy
-              :update #(assoc-in % [:state :update-count]
-                                 (inc (get-in % [:state :update-count] 0)))}
+              :update #(assoc-in % [:game :update-count]
+                                 (inc (get-in % [:game :update-count] 0)))}
              request-next-frame)
 
   (testing "updates, draws the new state, and requests the next frame"
@@ -90,13 +90,13 @@
 
 (defn- event-processing-update-func
   ([state]
-   (->> (get-in state [:state :events] [])
+   (->> (get-in state [:game :events] [])
         (count)
-        (assoc-in state [:state :event-count])))
+        (assoc-in state [:game :event-count])))
   ([state event]
-   (as-> (get-in state [:state :events] []) _
+   (as-> (get-in state [:game :events] []) _
          (conj _ event)
-         (assoc-in state [:state :events] _))))
+         (assoc-in state [:game :events] _))))
 
 (defn event-processing []
   (reset-frames!)
