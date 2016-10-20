@@ -8,6 +8,10 @@
 (def character {:character :laser :state :default})
 (def width 13)
 (def speed 0.200) ; Speed is in pixels per millisecond. This is 200 pixels per second.
+(def middle 6)
+
+(defn midpoint [{:keys [position]}]
+  (assoc position :x (+ (:x position) middle)))
 
 (defn update [{:keys [position velocity] :as laser} {:keys [bounds delta]}]
   (let [new-x (-> (+ (:x position) (* velocity delta))

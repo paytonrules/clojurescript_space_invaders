@@ -123,7 +123,7 @@
         (let [state (setup-playing-state)
               bullet (-> (game/update-game state {:name :fire})
                          (get-in [:game :bullet]))
-              expected-position (:position laser/initial)
+              expected-position (laser/midpoint laser/initial)
               actual-position (:position bullet)]
           (is (= expected-position actual-position))))
 
@@ -138,7 +138,7 @@
                            (game/update-game {:name :fire})
                            (get-in [:game :bullet]))
                 ; The x position of the laser has changed - the bullet should be in the old spot
-                expected-laser-x (get-in laser/initial [:position :x])
+                expected-laser-x (:x (laser/midpoint laser/initial))
                 actual-laser-x (get-in bullet [:position :x])]
             (is (= expected-laser-x actual-laser-x))))))))
 

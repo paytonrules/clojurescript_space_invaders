@@ -73,4 +73,12 @@
              (:velocity (-> (laser/move-right laser/initial)
                             (laser/move-right))))))))
 
+(defn should-provide-its-midpoint-for-firing-lasers []
+  (testing "its midpoint is based on its midpoint and position"
+    (let [laser (-> laser/initial
+                    (assoc-in [:position :x] 10))
+          expected-position (-> (:position laser)
+                                (assoc :x (+ laser/middle 10)))]
+      (is (= expected-position (laser/midpoint laser))))))
+
 (dev-cards-runner #"space-invaders.laser-test")

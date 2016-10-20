@@ -49,9 +49,8 @@
   (->> (laser/move-right (get-in state [:game :laser]))
        (assoc-in state [:game :laser])))
 
-(defn- create-bullet [{:keys [game]}]
-  (let [position (get-in game [:laser :position])]
-     (bullet/create position)))
+(defn- create-bullet [{:keys [laser]}]
+   (bullet/create (laser/midpoint laser)))
 
 (defn- bullet-present? [game]
   (:bullet game))
@@ -59,7 +58,7 @@
 (defmethod update-game [:playing :fire] [{:keys [game] :as state} event]
   (if (bullet-present? game)
     state
-    (assoc-in state [:game :bullet] (create-bullet state))))
+    (assoc-in state [:game :bullet] (create-bullet game))))
 
 (defn update-last-timestamp [game epoch]
   (assoc game :last-timestamp epoch))
