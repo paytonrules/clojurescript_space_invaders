@@ -90,12 +90,12 @@
               direction (get-in game [:invasion :direction])]
           (is (= :down direction)))))
 
-    (testing "update the button when it is present"
+    (testing "update the bullet when it is present"
       (with-redefs [t/epoch (fn [] 2)]
         (let [playing-state (-> (setup-playing-state :last-timestamp 1)
-                                (assoc-in [:game :bullet :position] {:y 0}))
+                                (assoc-in [:game :bullet :position] {:y 100}))
               {:keys [game]} (game/update-game playing-state)]
-          (is (= bullet/velocity (get-in game [:bullet :position :y]))))))
+          (is (= (+ 100 bullet/velocity) (get-in game [:bullet :position :y]))))))
 
     (testing "updating laser"
       (with-redefs [t/epoch (fn [] 2)]
@@ -140,6 +140,16 @@
                 ; The x position of the laser has changed - the bullet should be in the old spot
                 expected-laser-x (:x (laser/midpoint laser/initial))
                 actual-laser-x (get-in bullet [:position :x])]
-            (is (= expected-laser-x actual-laser-x))))))))
+            (is (= expected-laser-x actual-laser-x)))))
+
+      (testing "once the bullet goes past the top of the screen, allow creating bullets again"
+        (let [position-of-top-of-screen (- (:top game/bounds) (inc bullet/height))
+              bullet (-> (setup-playing-state)
+                         (game/update-game {:name :fire})
+                         (assoc-in [:game :bullet :position :y] position-of-top-of-screen)
+                         (game/update-game)
+                         (game/update-game {:name :fire})
+                         (get-in [:game :bullet]))]
+          (is (= (laser/midpoint laser/initial) (:position bullet))))))))
 
 (dev-cards-runner #"space-invaders.game-test")

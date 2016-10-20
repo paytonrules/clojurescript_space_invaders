@@ -8,7 +8,7 @@
             [util.image-loader :as image-loader]
             [util.time :as t]))
 
-(def bounds {:left 3 :right 212})
+(def bounds {:top 15 :left 3 :right 212})
 (def resolution {:w 217 :h 248})
 
 (defonce initial-app-state
@@ -72,9 +72,13 @@
   (->> (laser/update laser {:delta delta :bounds bounds})
        (assoc game :laser)))
 
+(defn- bullet-off-screen [bullet]
+  (< (:y (:position bullet)) (- (:top bounds) bullet/height)))
+
 (defn update-bullet [{:keys [bullet] :as game} delta]
   (if bullet
-    (do
+    (if (bullet-off-screen bullet)
+      (dissoc game :bullet)
       (->> (bullet/update bullet delta)
            (assoc game :bullet)))
     game))

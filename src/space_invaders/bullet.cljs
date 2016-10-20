@@ -3,6 +3,7 @@
 
 (def velocity -0.100)
 (def character {:character :bullet :state :default})
+(def height 4)
 
 (defn create [position]
   {:position position})
