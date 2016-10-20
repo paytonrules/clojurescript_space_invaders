@@ -54,10 +54,10 @@
      (bullet/create position)))
 
 (defn- bullet-present? [game]
-  (not (nil? (:bullet game))))
+  (:bullet game))
 
-(defmethod update-game [:playing :fire] [state event]
-  (if (bullet-present? (:game state))
+(defmethod update-game [:playing :fire] [{:keys [game] :as state} event]
+  (if (bullet-present? game)
     state
     (assoc-in state [:game :bullet] (create-bullet state))))
 
@@ -73,6 +73,13 @@
   (->> (laser/update laser {:delta delta :bounds bounds})
        (assoc game :laser)))
 
+(defn update-bullet [{:keys [bullet] :as game} delta]
+  (if bullet
+    (do
+      (->> (bullet/update bullet delta)
+           (assoc game :bullet)))
+    game))
+
 (defmethod update-game :playing [state]
   (let [epoch (t/epoch)
         delta (if-let [last-timestamp (:last-timestamp (:game state))]
@@ -81,5 +88,6 @@
         new-game (-> (:game state)
                      (update-invasion delta)
                      (update-laser delta)
+                     (update-bullet delta)
                      (update-last-timestamp epoch))]
     (assoc state :game new-game)))

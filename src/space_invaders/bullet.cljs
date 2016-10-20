@@ -1,7 +1,7 @@
 (ns space-invaders.bullet
   (:refer-clojure :exclude [update]))
 
-(def velocity 0.200)
+(def velocity -0.100)
 (def character {:character :bullet :state :default})
 
 (defn create [position]
